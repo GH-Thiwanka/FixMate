@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1092420138522",
+    "project_id": "fixmate-7b085",
+    "storage_bucket": "fixmate-7b085.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1092420138522:android:80c207265a7f4e4082c3a3",
+        "android_client_info": {
+          "package_name": "com.example.fixmate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1092420138522-6c7estv3fvkbg7lbilnm7j6eiao6eqeo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.application.fixmate",
+            "certificate_hash": "e2f7de3cbee83ed02ef1af82a7428c0d0fb4c654"
+          }
+        },
+        {
+          "client_id": "1092420138522-av8gl6bvfot0emaenocjnulmhbsvojcd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAygdPSoFITxEV-oXzsQtSAe5VgJOhHEW0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1092420138522-av8gl6bvfot0emaenocjnulmhbsvojcd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
