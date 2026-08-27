@@ -1,5 +1,8 @@
 import 'package:fixmate/theme/colors.dart';
-import 'package:fixmate/widget/googlesignup.dart';
+import 'package:fixmate/theme/textstyle.dart';
+import 'package:fixmate/widget/auth_and_onboarding/googlesignup.dart';
+import 'package:fixmate/widget/auth_and_onboarding/submilbutton.dart';
+import 'package:fixmate/widget/auth_and_onboarding/textfieldwidget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,7 +17,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _identifierController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -25,17 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      // TODO: Implement your authentication logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Logging in with ${_identifierController.text}...'),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      context.go('/home');
     }
   }
 
@@ -102,122 +94,59 @@ class _LoginScreenState extends State<LoginScreen> {
                           // "Welcome Back! 👋"
                           Row(
                             children: const [
-                              Text(
-                                'Welcome Back! ',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary,
-                                  letterSpacing: -0.3,
-                                ),
-                              ),
-                              Text('👋', style: TextStyle(fontSize: 20)),
+                              Text('Welcome Back! ', style: AppTextStyles.h1),
+                              Text('👋', style: TextStyle(fontSize: 22)),
                             ],
                           ),
                           const SizedBox(height: 4),
                           const Text(
                             'Login to continue',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w400,
-                            ),
+                            style: AppTextStyles.subtitle,
                           ),
                           const SizedBox(height: 22),
 
                           // Email or Phone Number Field
                           const Text(
                             'Email or Phone Number',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
+                            style: AppTextStyles.fieldLabel,
                           ),
                           const SizedBox(height: 8),
-                          TextFormField(
+                          CustomTextField(
                             controller: _identifierController,
-                            keyboardType: TextInputType.emailAddress,
-                            style: const TextStyle(
-                              fontSize: 14.5,
-                              color: AppColors.textPrimary,
-                            ),
-                            decoration: _buildInputDecoration(
-                              hintText: 'Enter email or phone number',
-                              prefixIcon: Icons.smartphone_rounded,
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter your email or phone number';
-                              }
-                              return null;
-                            },
+                            inputType: TextInputType.emailAddress,
+                            hintText: 'Enter email or phone number',
+                            prefixIcon: Icons.smartphone_rounded,
+                            validatorText:
+                                'Please enter your email or phone number',
                           ),
                           const SizedBox(height: 16),
 
                           // Password Field
                           const Text(
                             'Password',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
+                            style: AppTextStyles.fieldLabel,
                           ),
                           const SizedBox(height: 8),
-                          TextFormField(
+                          CustomTextField(
                             controller: _passwordController,
-                            obscureText: _obscurePassword,
-                            style: const TextStyle(
-                              fontSize: 14.5,
-                              color: AppColors.textPrimary,
-                            ),
-                            decoration: _buildInputDecoration(
-                              hintText: 'Enter your password',
-                              prefixIcon: Icons.lock_outline_rounded,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                  color: AppColors.textLight,
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter your password';
-                              }
-                              return null;
-                            },
+                            hintText: 'Enter your password',
+                            prefixIcon: Icons.lock_outline_rounded,
+                            isPasswordField: true,
+                            validatorText: 'Please enter your password',
                           ),
 
                           // Forgot Password? Link
                           Align(
                             alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {
-                                // TODO: Navigate to Forgot Password screen
+                            child: InkWell(
+                              onTap: () {
+                                context.push('/forgot-password');
                               },
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
-                                ),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: const Text(
-                                'Forgot Password?',
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 6.0),
+                                child: Text(
+                                  'Forgot Password?',
+                                  style: AppTextStyles.link,
                                 ),
                               ),
                             ),
@@ -225,29 +154,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 14),
 
                           // Login Button
-                          SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: ElevatedButton(
-                              onPressed: _handleLogin,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
-                                elevation: 3,
-                                shadowColor: AppColors.primary.withOpacity(0.4),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                              child: const Text(
-                                'Login',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ),
+                          Submilbutton(
+                            buttonText: 'Login',
+                            handleSubmit: _handleLogin,
                           ),
                           const SizedBox(height: 18),
 
@@ -264,11 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 padding: EdgeInsets.symmetric(horizontal: 14.0),
                                 child: Text(
                                   'OR',
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textLight,
-                                  ),
+                                  style: AppTextStyles.dividerOr,
                                 ),
                               ),
                               Expanded(
@@ -316,11 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               children: [
                                 const Text(
                                   "Don't have an account? ",
-                                  style: TextStyle(
-                                    fontSize: 13.5,
-                                    color: AppColors.textSecondary,
-                                    fontWeight: FontWeight.w400,
-                                  ),
+                                  style: AppTextStyles.linkPrefix,
                                 ),
                                 GestureDetector(
                                   onTap: () {
@@ -328,11 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   },
                                   child: const Text(
                                     'Sign Up',
-                                    style: TextStyle(
-                                      fontSize: 13.5,
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                    style: AppTextStyles.link,
                                   ),
                                 ),
                               ],
@@ -348,43 +245,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  InputDecoration _buildInputDecoration({
-    required String hintText,
-    required IconData prefixIcon,
-    Widget? suffixIcon,
-  }) {
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: const TextStyle(
-        color: AppColors.textLight,
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-      prefixIcon: Icon(prefixIcon, color: AppColors.primary, size: 20),
-      suffixIcon: suffixIcon,
-      filled: true,
-      fillColor: AppColors.background,
-      isDense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.border, width: 1.2),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.6),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.error, width: 1.2),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.error, width: 1.6),
       ),
     );
   }

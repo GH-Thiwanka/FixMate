@@ -1,7 +1,7 @@
 import 'package:fixmate/theme/colors.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:fixmate/widget/selectionWidget.dart';
+import 'package:fixmate/widget/auth_and_onboarding/selectionWidget.dart';
 import 'package:flutter/material.dart';
 
 class SelectionPage extends StatelessWidget {
