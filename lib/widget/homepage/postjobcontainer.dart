@@ -25,21 +25,16 @@ class Postjobcontainer extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Renovation\nMade Simple',
-                style: TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                  height: 1.2,
-                ),
+              Text(
+                'Renovation Made Simple',
+                style: AppTextStyles.h2.copyWith(fontSize: 22),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               const Text(
-                'Post a job & get quotes from verified workers',
+                'Post a job & get quotes from \nverified workers',
                 style: AppTextStyles.subtitleSmall,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () {
                   // TODO: context.push('/create-job-step-1');

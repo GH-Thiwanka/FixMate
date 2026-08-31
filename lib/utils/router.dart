@@ -47,7 +47,12 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: '/explore',
-      builder: (context, state) => const ExploreScreen(),
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final screenTitle = extra?['title'] as String? ?? 'Top Rated Near You';
+
+        return ExploreScreen(title: screenTitle);
+      },
     ),
     GoRoute(
       path: '/all-categories',

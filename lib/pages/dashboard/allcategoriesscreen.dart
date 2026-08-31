@@ -1,10 +1,12 @@
 import 'package:fixmate/data/populerservicedata.dart';
 import 'package:fixmate/model/populerservice_mdel.dart';
 import 'package:fixmate/pages/dashboard/categoryresultsscreen.dart';
+import 'package:fixmate/pages/dashboard/explore.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 
 class AllCategoriesScreen extends StatefulWidget {
   const AllCategoriesScreen({super.key});
@@ -94,15 +96,7 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                   final service = filteredServices[index];
                   return InkWell(
                     onTap: () {
-                      // Navigate to Screen #11 (Category Results)
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CategoryResultsScreen(
-                            categoryTitle: service.title,
-                          ),
-                        ),
-                      );
+                      context.push('/explore', extra: {'title': service.title});
                     },
                     borderRadius: BorderRadius.circular(16),
                     child: Container(

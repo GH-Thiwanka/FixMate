@@ -152,68 +152,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20),
 
-              // 2. SEARCH & FILTER BAR
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        style: AppTextStyles.inputText,
-                        decoration: const InputDecoration(
-                          hintText:
-                              'Search painters, plumbers, electricians...',
-                          hintStyle: AppTextStyles.inputHint,
-                          prefixIcon: Icon(
-                            Icons.search_rounded,
-                            color: AppColors.textLight,
-                            size: 22,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-
-                  // Filter Button
-
-                  // Inside your filter icon onTap:
-                  InkWell(
-                    onTap: () {
-                      FilterBottomSheet.show(
-                        context,
-                        onApply: () {
-                          print('Filters applied!');
-                        },
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(
-                        Icons.tune_rounded,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
               const Postjobcontainer(),
 
               const SizedBox(height: 16),
@@ -246,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   final service = populerservicedata.populerservice[index];
                   return InkWell(
                     onTap: () {
-                      // TODO: Navigate to Category Results (Screen #11)
+                      context.push('/explore', extra: {'title': service.title});
                     },
                     borderRadius: BorderRadius.circular(16),
                     child: Container(

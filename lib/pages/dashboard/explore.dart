@@ -5,11 +5,12 @@ import 'package:fixmate/theme/textstyle.dart';
 import 'package:fixmate/widget/homepage/filterbottomsheet.dart';
 import 'package:fixmate/widget/homepage/workercard.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ExploreScreen extends StatefulWidget {
   final String title;
 
-  const ExploreScreen({super.key, this.title = 'Top Rated Near You'});
+  const ExploreScreen({super.key, required this.title});
 
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
@@ -21,6 +22,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
   final WorkerData workerData = WorkerData();
   String _searchQuery = '';
 
+  late String _appbarTitle;
+
   final List<String> _filterChips = [
     'All',
     '★ 4.5+ Rated',
@@ -30,14 +33,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _appbarTitle = widget.title.isNotEmpty
+        ? widget.title
+        : 'Top Rated Near You';
+    if (widget.title.isNotEmpty && widget.title != 'Top Rated Near You') {
+      _searchQuery = widget.title;
+      _searchController.text = widget.title;
+    }
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // 1. Filter workers dynamically by search query (Name or Service)
+    // 1. Filter workers dynamically by search query
     final List<WorkerModel> filteredWorkers = workerData.workers.where((
       worker,
     ) {
@@ -48,18 +64,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.title, style: AppTextStyles.h2.copyWith(fontSize: 18)),
+            Text(_appbarTitle, style: AppTextStyles.h2.copyWith(fontSize: 18)),
             Text(
               '${filteredWorkers.length} verified professionals nearby',
               style: AppTextStyles.subtitleSmall,
@@ -103,7 +118,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   icon: const Icon(Icons.clear, size: 18),
                                   onPressed: () {
                                     _searchController.clear();
-                                    setState(() => _searchQuery = '');
+                                    setState(() {
+                                      _searchQuery = '';
+                                      _appbarTitle = 'Top Rated Near You';
+                                    });
                                   },
                                 )
                               : null,
@@ -117,7 +135,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   ),
                   const SizedBox(width: 10),
 
-                  // Filter Button (Opens Bottom Sheet #12)
+                  // Filter Button
                   InkWell(
                     onTap: () {
                       FilterBottomSheet.show(context);
@@ -210,13 +228,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     )
                   : ListView.separated(
                       padding: const EdgeInsets.all(10),
-                      itemCount:
-                          filteredWorkers.length, // ✅ Using filtered list
+                      itemCount: filteredWorkers.length,
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: 8),
                       itemBuilder: (context, index) {
-                        final worker =
-                            filteredWorkers[index]; // ✅ Using filtered list
+                        final worker = filteredWorkers[index];
                         return Workercard(
                           name: worker.name,
                           service: worker.service,
