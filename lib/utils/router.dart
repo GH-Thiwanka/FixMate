@@ -2,19 +2,22 @@ import 'package:fixmate/pages/customer/authscreens/forgrtpassword.dart';
 import 'package:fixmate/pages/customer/authscreens/login.dart';
 import 'package:fixmate/pages/customer/authscreens/otpverification.dart';
 import 'package:fixmate/pages/customer/authscreens/signup.dart';
-import 'package:fixmate/pages/homepage.dart';
+import 'package:fixmate/pages/dashboard/allcategoriesscreen.dart';
+import 'package:fixmate/pages/dashboard/explore.dart';
+import 'package:fixmate/pages/dashboard/homepage.dart';
 import 'package:fixmate/pages/onboarding/onboarding.dart';
 import 'package:fixmate/pages/onboarding/selection.dart';
 import 'package:fixmate/pages/onboarding/splash.dart';
+import 'package:fixmate/pages/dashboard/workerprofile.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter router = GoRouter(
-  initialLocation: '/home',
+  initialLocation: '/',
   routes: [
     //onboarding and splash screens
     GoRoute(path: '/splash', builder: (context, state) => const Splash()),
-    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => const Onboarding(),
@@ -34,6 +37,21 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/otp-verification',
       builder: (context, state) => const OtpVerificationScreen(),
+    ),
+
+    //dashboard screens
+    GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/worker-profile',
+      builder: (context, state) => const WorkerProfileScreen(),
+    ),
+    GoRoute(
+      path: '/explore',
+      builder: (context, state) => const ExploreScreen(),
+    ),
+    GoRoute(
+      path: '/all-categories',
+      builder: (context, state) => const AllCategoriesScreen(),
     ),
   ],
 );

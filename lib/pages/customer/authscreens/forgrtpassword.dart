@@ -1,4 +1,5 @@
 import 'package:fixmate/theme/colors.dart';
+import 'package:fixmate/widget/auth_and_onboarding/submilbutton.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -209,40 +210,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 // ----------------------------------------------------
                 // 3. "SEND RESET CODE" BUTTON
                 // ----------------------------------------------------
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleResetPassword,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      elevation: 3,
-                      shadowColor: AppColors.primary.withOpacity(0.4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.4,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        : const Text(
-                            'Send Reset Code',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                  ),
+                Submilbutton(
+                  buttonText: 'Send Reset Code',
+                  handleSubmit: _isLoading ? null : _handleResetPassword,
                 ),
 
                 const Spacer(),

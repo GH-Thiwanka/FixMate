@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fixmate/theme/colors.dart';
+import 'package:fixmate/widget/auth_and_onboarding/submilbutton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -309,41 +310,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               // ----------------------------------------------------
               // 4. "VERIFY & PROCEED" BUTTON
               // ----------------------------------------------------
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleVerify,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 3,
-                    shadowColor: AppColors.primary.withOpacity(0.4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.4,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                      : const Text(
-                          'Verify & Proceed',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                ),
+              Submilbutton(
+                handleSubmit: _isLoading ? null : _handleVerify,
+                buttonText: _isLoading ? 'Verifying...' : 'Verify & Proceed',
               ),
+
               const SizedBox(height: 12),
             ],
           ),

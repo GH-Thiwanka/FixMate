@@ -1,4 +1,5 @@
 import 'package:fixmate/data/populerservicedata.dart';
+import 'package:fixmate/data/worker_data.dart';
 import 'package:fixmate/service/location.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
@@ -25,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currentAddress = 'Detecting location...';
   bool _isLoadingLocation = true;
   final populerservicedata = Populerservicedata();
+  final workerdata = WorkerData();
 
   @override
   void initState() {
@@ -54,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+          padding: const EdgeInsets.all(10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -214,21 +216,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const Postjobcontainer(),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Popular Services', style: AppTextStyles.h2),
-                  TextButton(
-                    onPressed: () {
-                      // TODO: context.push('/all-categories');
+                  GestureDetector(
+                    onTap: () {
+                      context.push('/all-categories');
                     },
                     child: const Text('See All', style: AppTextStyles.link),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
 
               GridView.builder(
                 shrinkWrap: true,
@@ -252,8 +254,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: AppColors.electrician,
-                          width: 0.2,
+                          color: AppColors.primaryLight.withOpacity(0.4),
+                          width: 1,
                         ),
                       ),
                       child: Column(
@@ -290,25 +292,45 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Top Rated Near You', style: AppTextStyles.h2),
-                  TextButton(
-                    onPressed: () {
-                      // TODO: Navigate to Explore screen
+                  GestureDetector(
+                    onTap: () {
+                      context.push('/explore');
                     },
                     child: const Text('Explore', style: AppTextStyles.link),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
 
-              // Worker Card Item
-              const Workercard(),
+              // Horizontal Scrolling Worker Cards
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
 
+                clipBehavior: Clip.none,
+                child: Row(
+                  children: [
+                    for (var worker in workerdata.workers.take(4))
+                      SizedBox(
+                        width: 350,
+                        child: Workercard(
+                          name: worker.name,
+                          service: worker.service,
+                          imageUrl: worker.imageUrl,
+                          rating: worker.rating,
+                          reviewCount: worker.reviewCount,
+                          price: worker.price,
+                          distance: worker.distance,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
             ],
           ),
@@ -331,15 +353,12 @@ class _HomeScreenState extends State<HomeScreen> {
               // Already on Home
               break;
             case 1:
-              // context.go('/explore');
-              break;
-            case 2:
               // context.go('/my-jobs');
               break;
-            case 3:
+            case 2:
               // context.go('/messages');
               break;
-            case 4:
+            case 3:
               // context.go('/profile');
               break;
           }

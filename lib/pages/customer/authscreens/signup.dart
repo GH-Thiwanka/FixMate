@@ -63,7 +63,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _handleSignUp() {
     if (!_agreeToTerms) {
-      context.go('/home');
+      context.go('/');
 
       return;
     }

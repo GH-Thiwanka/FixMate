@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      context.go('/home');
+      context.go('/');
     }
   }
 
@@ -54,6 +54,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   'assets/images/loginback.png',
                   fit: BoxFit.cover,
                   alignment: Alignment.topCenter,
+                ),
+              ),
+              Positioned(
+                top: 30,
+                left: 5,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  color: AppColors.textPrimary,
+                  onPressed: () {
+                    context.go('/selection');
+                  },
                 ),
               ),
 

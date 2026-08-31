@@ -60,11 +60,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           activeIcon: Icon(Icons.home_rounded),
           label: 'Home',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search_rounded),
-          activeIcon: Icon(Icons.search_rounded),
-          label: 'Explore',
-        ),
+
         BottomNavigationBarItem(
           icon: Icon(Icons.assignment_outlined),
           activeIcon: Icon(Icons.assignment_rounded),
