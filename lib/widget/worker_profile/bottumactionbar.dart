@@ -1,5 +1,5 @@
 import 'package:fixmate/theme/colors.dart';
-import 'package:fixmate/theme/textstyle.dart';
+import 'package:fixmate/widget/auth_and_onboarding/submilbutton.dart';
 import 'package:flutter/material.dart';
 
 class WorkerBottomActionBar extends StatelessWidget {
@@ -58,23 +58,10 @@ class WorkerBottomActionBar extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          // "Request Quote" CTA (Screen #15: Create Job Stepper)
           Expanded(
-            child: ElevatedButton(
-              onPressed: onRequestQuotePressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 2,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: const Text(
-                'Request Quote',
-                style: AppTextStyles.buttonPrimary,
-              ),
+            child: Submilbutton(
+              buttonText: 'Request Quote',
+              handleSubmit: onRequestQuotePressed,
             ),
           ),
         ],

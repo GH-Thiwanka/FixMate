@@ -5,6 +5,7 @@ import 'package:fixmate/pages/customer/authscreens/signup.dart';
 import 'package:fixmate/pages/dashboard/allcategoriesscreen.dart';
 import 'package:fixmate/pages/dashboard/explore.dart';
 import 'package:fixmate/pages/dashboard/homepage.dart';
+import 'package:fixmate/pages/dashboard/post_a_job_screen.dart';
 import 'package:fixmate/pages/onboarding/onboarding.dart';
 import 'package:fixmate/pages/onboarding/selection.dart';
 import 'package:fixmate/pages/onboarding/splash.dart';
@@ -57,6 +58,10 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/all-categories',
       builder: (context, state) => const AllCategoriesScreen(),
+    ),
+    GoRoute(
+      path: '/post-a-job',
+      builder: (context, state) => const PostAJobScreen(),
     ),
   ],
 );

@@ -1,6 +1,7 @@
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class Postjobcontainer extends StatelessWidget {
   const Postjobcontainer({super.key});
@@ -37,7 +38,7 @@ class Postjobcontainer extends StatelessWidget {
               const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () {
-                  // TODO: context.push('/create-job-step-1');
+                  context.push('/post-a-job');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
