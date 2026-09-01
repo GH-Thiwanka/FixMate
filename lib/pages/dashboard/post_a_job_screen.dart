@@ -12,6 +12,7 @@ import 'package:fixmate/widget/post_a_job/step5.dart';
 import 'package:fixmate/widget/post_a_job/success_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart'; // 1. Added image_picker import
 
 class PostAJobScreen extends StatefulWidget {
   final String? initialCategory;
@@ -30,20 +31,25 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
   late String _selectedCategory;
   late String _selectedSubService;
 
-  // Step 2 State
+  // Step 2 State (Description, Property Type & Photo List)
   final TextEditingController _descriptionController = TextEditingController();
   String _propertyType = 'House';
+  List<XFile> _selectedImages = []; // 2. Stores selected job photos (Max 3)
 
-  // Step 3 State (Location & Schedule)
+  // Step 3 State (Location, Date & Whole Hours)
   String _address = 'Detecting location...';
   bool _isLoadingLocation = true;
   bool _isLocationError = false;
   String _scheduleType = 'Schedule a Visit';
-  String _selectedTimeSlot = 'Morning (9 AM - 12 PM)';
+  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+  int _startHour = 9; // 9:00 AM
+  int _endHour = 15; // 3:00 PM
 
-  // Step 4 State
+  // Step 4 State (Budget TextField Controller)
   String _budgetPreference = 'I Need Quotes';
-  double _budgetAmount = 15000;
+  final TextEditingController _budgetController = TextEditingController(
+    text: '15000',
+  );
 
   // Step 5 State
   bool _broadcastToAll = true;
@@ -84,6 +90,7 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
   @override
   void dispose() {
     _descriptionController.dispose();
+    _budgetController.dispose();
     super.dispose();
   }
 
@@ -107,8 +114,6 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: _previousStep,
@@ -195,7 +200,9 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
         return Step2ProjectDetailsWidget(
           descriptionController: _descriptionController,
           selectedPropertyType: _propertyType,
+          selectedImages: _selectedImages,
           onPropertyTypeChanged: (type) => setState(() => _propertyType = type),
+          onImagesChanged: (images) => setState(() => _selectedImages = images),
         );
       case 2:
         return Step3LocationScheduleWidget(
@@ -206,18 +213,28 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
           onAddressChanged: (newAddress) =>
               setState(() => _address = newAddress),
           scheduleType: _scheduleType,
-          selectedTimeSlot: _selectedTimeSlot,
+          selectedDate: _selectedDate,
+          startHour: _startHour,
+          endHour: _endHour,
           onScheduleTypeChanged: (type) => setState(() => _scheduleType = type),
-          onTimeSlotChanged: (slot) => setState(() => _selectedTimeSlot = slot),
+          onDateChanged: (date) => setState(() => _selectedDate = date),
+          onStartHourChanged: (hour) {
+            setState(() {
+              _startHour = hour;
+              // If endHour is now equal to or before startHour, auto-advance it
+              if (_endHour <= _startHour) {
+                _endHour = (_startHour + 1).clamp(9, 18);
+              }
+            });
+          },
+          onEndHourChanged: (hour) => setState(() => _endHour = hour),
         );
       case 3:
         return Step4SetBudgetWidget(
           budgetPreference: _budgetPreference,
-          budgetAmount: _budgetAmount,
+          budgetController: _budgetController,
           onBudgetPreferenceChanged: (pref) =>
               setState(() => _budgetPreference = pref),
-          onBudgetAmountChanged: (amount) =>
-              setState(() => _budgetAmount = amount),
         );
       case 4:
         return Step5ReviewPostWidget(
@@ -225,9 +242,11 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
           subService: _selectedSubService,
           propertyType: _propertyType,
           location: _address.isNotEmpty ? _address : 'Colombo 07, Sri Lanka',
-          schedule: _scheduleType == 'ASAP' ? 'ASAP' : _selectedTimeSlot,
+          schedule: _scheduleType == 'ASAP'
+              ? 'ASAP (Emergency)'
+              : '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} (${Step3LocationScheduleWidget.formatHour(_startHour)} - ${Step3LocationScheduleWidget.formatHour(_endHour)})',
           budget: _budgetPreference == 'Fixed Budget'
-              ? 'Rs. ${_budgetAmount.toInt()}'
+              ? 'Rs. ${_budgetController.text.isNotEmpty ? _budgetController.text : "15,000"}'
               : 'Competitive Quotes',
           broadcastToAll: _broadcastToAll,
           onBroadcastChanged: (val) => setState(() => _broadcastToAll = val),
