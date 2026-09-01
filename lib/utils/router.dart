@@ -1,17 +1,24 @@
+import 'package:fixmate/pages/customer/authscreens/forgrtpassword.dart';
 import 'package:fixmate/pages/customer/authscreens/login.dart';
+import 'package:fixmate/pages/customer/authscreens/otpverification.dart';
 import 'package:fixmate/pages/customer/authscreens/signup.dart';
-import 'package:fixmate/pages/homepage.dart';
+import 'package:fixmate/pages/dashboard/allcategoriesscreen.dart';
+import 'package:fixmate/pages/dashboard/explore.dart';
+import 'package:fixmate/pages/dashboard/homepage.dart';
+import 'package:fixmate/pages/dashboard/post_a_job_screen.dart';
 import 'package:fixmate/pages/onboarding/onboarding.dart';
 import 'package:fixmate/pages/onboarding/selection.dart';
 import 'package:fixmate/pages/onboarding/splash.dart';
+import 'package:fixmate/pages/dashboard/workerprofile.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter router = GoRouter(
-  initialLocation: '/splash',
+  initialLocation: '/',
   routes: [
+    //onboarding and splash screens
     GoRoute(path: '/splash', builder: (context, state) => const Splash()),
-    GoRoute(path: '/home', builder: (context, state) => const Homepage()),
+
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => const Onboarding(),
@@ -20,7 +27,41 @@ final GoRouter router = GoRouter(
       path: '/selection',
       builder: (context, state) => const SelectionPage(),
     ),
+
+    //auth screens
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/signup', builder: (context, state) => const SignUpScreen()),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/otp-verification',
+      builder: (context, state) => const OtpVerificationScreen(),
+    ),
+
+    //dashboard screens
+    GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/worker-profile',
+      builder: (context, state) => const WorkerProfileScreen(),
+    ),
+    GoRoute(
+      path: '/explore',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final screenTitle = extra?['title'] as String? ?? 'Top Rated Near You';
+
+        return ExploreScreen(title: screenTitle);
+      },
+    ),
+    GoRoute(
+      path: '/all-categories',
+      builder: (context, state) => const AllCategoriesScreen(),
+    ),
+    GoRoute(
+      path: '/post-a-job',
+      builder: (context, state) => const PostAJobScreen(),
+    ),
   ],
 );

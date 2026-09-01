@@ -1,3 +1,4 @@
+import 'package:fixmate/theme/textstyle.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,7 +40,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
     _controller.forward();
 
     // Navigate to Home after 4 seconds
-    Future.delayed(const Duration(milliseconds: 3500), () {
+    Future.delayed(const Duration(milliseconds: 5000), () {
       if (mounted) {
         context.go('/onboarding');
       }
@@ -62,14 +63,30 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
             scale: _scaleAnimation,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 SizedBox(
                   height: 150,
                   child: Image(image: AssetImage('assets/icons/logo.png')),
                 ),
                 SizedBox(
                   height: 50,
-                  child: Image(image: AssetImage('assets/icons/name.png')),
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Fix',
+                          style: AppTextStyles.h1.copyWith(fontSize: 40),
+                        ),
+                        TextSpan(
+                          text: 'Mate',
+                          style: AppTextStyles.h1.copyWith(
+                            fontSize: 40,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),

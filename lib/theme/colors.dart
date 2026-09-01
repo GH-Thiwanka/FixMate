@@ -31,11 +31,15 @@ class AppColors {
   // ===== Rating =====
   static const Color star = Color(0xFFFBBF24);
 
-  // ===== Worker Categories =====
-  static const Color carpenter = Color(0xFFD97706);
-  static const Color plumber = Color(0xFF2563EB);
-  static const Color electrician = Color(0xFFFACC15);
-  static const Color painter = Color(0xFFEC4899);
+  // ===== Worker Categories (Soft Pastel Backgrounds) =====
+  static const Color plumber = Color(0xFFE0EDFF);
+  static const Color painter = Color(0xFFFFECE0);
+  static const Color electrician = Color(0xFFFEF9C3);
+  static const Color carpenter = Color(0xFFF3E8FF);
+  static const Color acRepair = Color(0xFFCCFBF1);
+  static const Color masonry = Color(0xFFFFE4E6);
+  static const Color cctv = Color(0xFFEEF2FF);
+  static const Color cleaning = Color(0xFFECFEFF);
 
   // ===== Dark Mode =====
   static const Color darkBackground = Color(0xFF111827);
