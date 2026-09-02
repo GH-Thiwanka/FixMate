@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final address = await LocationService.getCurrentAddress();
     if (mounted) {
       setState(() {
-        _currentAddress = address ?? 'Colombo, Sri Lanka';
+        _currentAddress = address;
         _isLoadingLocation = false;
       });
     }
@@ -284,14 +284,12 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _selectedBottomNavIndex = index;
           });
-
-          // Example: Navigate using GoRouter or switch screens
           switch (index) {
             case 0:
-              // Already on Home
+              context.go('/');
               break;
             case 1:
-              // context.go('/my-jobs');
+              context.go('/my-jobs');
               break;
             case 2:
               // context.go('/messages');

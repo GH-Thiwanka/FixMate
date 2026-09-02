@@ -12,7 +12,7 @@ import 'package:fixmate/widget/post_a_job/step5.dart';
 import 'package:fixmate/widget/post_a_job/success_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart'; // 1. Added image_picker import
+import 'package:image_picker/image_picker.dart';
 
 class PostAJobScreen extends StatefulWidget {
   final String? initialCategory;
@@ -34,7 +34,7 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
   // Step 2 State (Description, Property Type & Photo List)
   final TextEditingController _descriptionController = TextEditingController();
   String _propertyType = 'House';
-  List<XFile> _selectedImages = []; // 2. Stores selected job photos (Max 3)
+  List<XFile> _selectedImages = [];
 
   // Step 3 State (Location, Date & Whole Hours)
   String _address = 'Detecting location...';
