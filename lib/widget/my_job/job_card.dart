@@ -264,7 +264,9 @@ class JobCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.push('/reschedule', extra: job);
+                },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.border),
                   shape: RoundedRectangleBorder(

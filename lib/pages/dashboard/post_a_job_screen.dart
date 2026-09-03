@@ -3,6 +3,7 @@ import 'package:fixmate/service/location.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:fixmate/widget/auth_and_onboarding/submilbutton.dart';
+import 'package:fixmate/widget/dateandhourspicker.dart';
 import 'package:fixmate/widget/post_a_job/progress_bar.dart';
 import 'package:fixmate/widget/post_a_job/step1.dart';
 import 'package:fixmate/widget/post_a_job/step2.dart';
@@ -244,7 +245,7 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
           location: _address.isNotEmpty ? _address : 'Colombo 07, Sri Lanka',
           schedule: _scheduleType == 'ASAP'
               ? 'ASAP (Emergency)'
-              : '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} (${Step3LocationScheduleWidget.formatHour(_startHour)} - ${Step3LocationScheduleWidget.formatHour(_endHour)})',
+              : '${DateAndHoursPickerWidget.formatDate(_selectedDate)} (${DateAndHoursPickerWidget.formatHour(_startHour)} - ${DateAndHoursPickerWidget.formatHour(_endHour)})',
           budget: _budgetPreference == 'Fixed Budget'
               ? 'Rs. ${_budgetController.text.isNotEmpty ? _budgetController.text : "15,000"}'
               : 'Competitive Quotes',

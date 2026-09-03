@@ -1,3 +1,4 @@
+import 'package:fixmate/model/job_model.dart';
 import 'package:fixmate/pages/customer/authscreens/forgrtpassword.dart';
 import 'package:fixmate/pages/customer/authscreens/login.dart';
 import 'package:fixmate/pages/customer/authscreens/otpverification.dart';
@@ -14,6 +15,7 @@ import 'package:fixmate/pages/onboarding/splash.dart';
 import 'package:fixmate/pages/dashboard/workerprofile.dart';
 import 'package:fixmate/pages/profilescreen.dart';
 import 'package:fixmate/pages/quotescreen.dart';
+import 'package:fixmate/pages/reschedulescreen.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter router = GoRouter(
@@ -76,6 +78,14 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/quotes',
       builder: (context, state) => const QuotesReceivedScreen(),
+    ),
+
+    GoRoute(
+      path: '/reschedule',
+      builder: (context, state) {
+        final job = state.extra as JobModel;
+        return RescheduleScreen(job: job);
+      },
     ),
 
     //messages screen
