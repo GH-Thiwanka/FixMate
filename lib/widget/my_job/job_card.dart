@@ -337,7 +337,9 @@ class JobCard extends StatelessWidget {
           width: double.infinity,
           height: 38,
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              context.push('/refund-support', extra: job);
+            },
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: AppColors.border),
               shape: RoundedRectangleBorder(

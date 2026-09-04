@@ -16,6 +16,7 @@ import 'package:fixmate/pages/dashboard/workerprofile.dart';
 import 'package:fixmate/pages/profilescreen.dart';
 import 'package:fixmate/pages/quotescreen.dart';
 import 'package:fixmate/pages/rateandreview.dart';
+import 'package:fixmate/pages/refundandsupport.dart';
 import 'package:fixmate/pages/reschedulescreen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -96,6 +97,15 @@ final GoRouter router = GoRouter(
         return RateAndReviewScreen(job: job);
       },
     ),
+
+    GoRoute(
+      path: '/refund-support',
+      builder: (context, state) {
+        final job = state.extra as JobModel?;
+        return RefundAndSupportScreen(job: job);
+      },
+    ),
+
     //messages screen
     GoRoute(
       path: '/messages',
