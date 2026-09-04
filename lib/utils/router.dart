@@ -1,3 +1,4 @@
+import 'package:fixmate/model/job_model.dart';
 import 'package:fixmate/pages/customer/authscreens/forgrtpassword.dart';
 import 'package:fixmate/pages/customer/authscreens/login.dart';
 import 'package:fixmate/pages/customer/authscreens/otpverification.dart';
@@ -6,15 +7,21 @@ import 'package:fixmate/pages/dashboard/allcategoriesscreen.dart';
 import 'package:fixmate/pages/dashboard/explore.dart';
 import 'package:fixmate/pages/dashboard/homepage.dart';
 import 'package:fixmate/pages/dashboard/post_a_job_screen.dart';
+import 'package:fixmate/pages/messagescreen.dart';
+import 'package:fixmate/pages/myjobscreen.dart';
 import 'package:fixmate/pages/onboarding/onboarding.dart';
 import 'package:fixmate/pages/onboarding/selection.dart';
 import 'package:fixmate/pages/onboarding/splash.dart';
 import 'package:fixmate/pages/dashboard/workerprofile.dart';
-import 'package:flutter/material.dart';
+import 'package:fixmate/pages/profilescreen.dart';
+import 'package:fixmate/pages/quotescreen.dart';
+import 'package:fixmate/pages/rateandreview.dart';
+import 'package:fixmate/pages/refundandsupport.dart';
+import 'package:fixmate/pages/reschedulescreen.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter router = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/my-jobs',
   routes: [
     //onboarding and splash screens
     GoRoute(path: '/splash', builder: (context, state) => const Splash()),
@@ -46,6 +53,12 @@ final GoRouter router = GoRouter(
       path: '/worker-profile',
       builder: (context, state) => const WorkerProfileScreen(),
     ),
+
+    //create job screens
+    GoRoute(
+      path: '/my-jobs',
+      builder: (context, state) => const MyJobsScreen(),
+    ),
     GoRoute(
       path: '/explore',
       builder: (context, state) {
@@ -62,6 +75,47 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/post-a-job',
       builder: (context, state) => const PostAJobScreen(),
+    ),
+
+    GoRoute(
+      path: '/quotes',
+      builder: (context, state) => const QuotesReceivedScreen(),
+    ),
+
+    GoRoute(
+      path: '/reschedule',
+      builder: (context, state) {
+        final job = state.extra as JobModel;
+        return RescheduleScreen(job: job);
+      },
+    ),
+
+    GoRoute(
+      path: '/rate-review',
+      builder: (context, state) {
+        final job = state.extra as JobModel;
+        return RateAndReviewScreen(job: job);
+      },
+    ),
+
+    GoRoute(
+      path: '/refund-support',
+      builder: (context, state) {
+        final job = state.extra as JobModel?;
+        return RefundAndSupportScreen(job: job);
+      },
+    ),
+
+    //messages screen
+    GoRoute(
+      path: '/messages',
+      builder: (context, state) => const Messagescreen(),
+    ),
+
+    //profile screen
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const Profilescreen(),
     ),
   ],
 );
