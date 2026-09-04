@@ -15,11 +15,12 @@ import 'package:fixmate/pages/onboarding/splash.dart';
 import 'package:fixmate/pages/dashboard/workerprofile.dart';
 import 'package:fixmate/pages/profilescreen.dart';
 import 'package:fixmate/pages/quotescreen.dart';
+import 'package:fixmate/pages/rateandreview.dart';
 import 'package:fixmate/pages/reschedulescreen.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter router = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/my-jobs',
   routes: [
     //onboarding and splash screens
     GoRoute(path: '/splash', builder: (context, state) => const Splash()),
@@ -88,6 +89,13 @@ final GoRouter router = GoRouter(
       },
     ),
 
+    GoRoute(
+      path: '/rate-review',
+      builder: (context, state) {
+        final job = state.extra as JobModel;
+        return RateAndReviewScreen(job: job);
+      },
+    ),
     //messages screen
     GoRoute(
       path: '/messages',

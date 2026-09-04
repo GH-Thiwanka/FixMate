@@ -292,7 +292,7 @@ class JobCard extends StatelessWidget {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  // context.push('/rate-and-review', extra: job);
+                  context.push('/rate-review', extra: job);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
