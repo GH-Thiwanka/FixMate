@@ -1,4 +1,6 @@
+import 'package:fixmate/data/chat_data.dart';
 import 'package:fixmate/model/job_model.dart';
+import 'package:fixmate/pages/activejobtracking.dart';
 import 'package:fixmate/pages/customer/authscreens/forgrtpassword.dart';
 import 'package:fixmate/pages/customer/authscreens/login.dart';
 import 'package:fixmate/pages/customer/authscreens/otpverification.dart';
@@ -8,20 +10,21 @@ import 'package:fixmate/pages/dashboard/explore.dart';
 import 'package:fixmate/pages/dashboard/homepage.dart';
 import 'package:fixmate/pages/dashboard/post_a_job_screen.dart';
 import 'package:fixmate/pages/messagescreen.dart';
-import 'package:fixmate/pages/myjobscreen.dart';
+import 'package:fixmate/pages/myjob/myjobscreen.dart';
 import 'package:fixmate/pages/onboarding/onboarding.dart';
 import 'package:fixmate/pages/onboarding/selection.dart';
 import 'package:fixmate/pages/onboarding/splash.dart';
 import 'package:fixmate/pages/dashboard/workerprofile.dart';
 import 'package:fixmate/pages/profilescreen.dart';
-import 'package:fixmate/pages/quotescreen.dart';
-import 'package:fixmate/pages/rateandreview.dart';
-import 'package:fixmate/pages/refundandsupport.dart';
-import 'package:fixmate/pages/reschedulescreen.dart';
+import 'package:fixmate/pages/myjob/quotescreen.dart';
+import 'package:fixmate/pages/myjob/rateandreview.dart';
+import 'package:fixmate/pages/myjob/refundandsupport.dart';
+import 'package:fixmate/pages/myjob/reschedulescreen.dart';
+import 'package:fixmate/pages/workerchat.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter router = GoRouter(
-  initialLocation: '/my-jobs',
+  initialLocation: '/messages',
   routes: [
     //onboarding and splash screens
     GoRoute(path: '/splash', builder: (context, state) => const Splash()),
@@ -109,7 +112,28 @@ final GoRouter router = GoRouter(
     //messages screen
     GoRoute(
       path: '/messages',
-      builder: (context, state) => const Messagescreen(),
+      builder: (context, state) => const MessagesScreen(),
+    ),
+
+    GoRoute(
+      path: '/chat',
+      builder: (context, state) {
+        final workerName = state.extra as String?;
+        return WorkerChatScreen(
+          conversation: ChatData.conversations.firstWhere(
+            (conv) => conv.workerName == workerName,
+            orElse: () => ChatData.conversations.first,
+          ),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: '/active-job-tracking',
+      builder: (context, state) {
+        final job = state.extra as JobModel?;
+        return ActiveJobTrackingScreen(job: job);
+      },
     ),
 
     //profile screen

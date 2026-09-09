@@ -205,7 +205,7 @@ class JobCard extends StatelessWidget {
                   height: 42,
                   buttonText: 'Track Live',
                   handleSubmit: () {
-                    // context.push('/job-details', extra: job);
+                    context.push('/active-job-tracking', extra: job);
                   },
                 ),
               ),
@@ -215,7 +215,7 @@ class JobCard extends StatelessWidget {
                   height: 40,
                   child: OutlinedButton(
                     onPressed: () {
-                      // context.push('/chat', extra: job.workerName);
+                      context.push('/chat', extra: job.workerName);
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.primary),
@@ -244,7 +244,7 @@ class JobCard extends StatelessWidget {
             Expanded(
               child: OutlinedButton(
                 onPressed: () {
-                  // context.push('/chat', extra: job.workerName);
+                  context.push('/chat', extra: job.workerName);
                 },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.primary),
