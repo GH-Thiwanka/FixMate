@@ -292,10 +292,10 @@ class _HomeScreenState extends State<HomeScreen> {
               context.go('/my-jobs');
               break;
             case 2:
-              // context.go('/messages');
+              context.go('/messages');
               break;
             case 3:
-              // context.go('/profile');
+              context.go('/profile');
               break;
           }
         },
