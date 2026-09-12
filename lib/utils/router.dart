@@ -104,7 +104,7 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/refund-support',
       builder: (context, state) {
-        final job = state.extra as JobModel?;
+        final job = state.extra as JobModel;
         return RefundAndSupportScreen(job: job);
       },
     ),
@@ -139,7 +139,7 @@ final GoRouter router = GoRouter(
     //profile screen
     GoRoute(
       path: '/profile',
-      builder: (context, state) => const Profilescreen(),
+      builder: (context, state) => const ProfileScreen(),
     ),
   ],
 );
