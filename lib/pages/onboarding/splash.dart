@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -39,12 +40,43 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
     // Start animation
     _controller.forward();
 
-    // Navigate to Home after 4 seconds
-    Future.delayed(const Duration(milliseconds: 5000), () {
-      if (mounted) {
-        context.go('/onboarding');
+    // Check Firebase Auth state after animation completes
+    _checkAuthStateAndNavigate();
+  }
+
+  Future<void> _checkAuthStateAndNavigate() async {
+    // Show splash animation for 2.5 seconds
+    await Future.delayed(const Duration(milliseconds: 2500));
+
+    if (!mounted) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        // Refresh token & verification status
+        await user.reload();
+        final refreshedUser = FirebaseAuth.instance.currentUser;
+
+        if (!mounted) return;
+        if (refreshedUser != null && refreshedUser.emailVerified) {
+          // Logged in & Verified -> Go directly to Home Dashboard
+          context.go('/');
+          return;
+        }
+      } catch (e) {
+        if (!mounted) return;
+        // In case network was unavailable, check cached state
+        if (user.emailVerified) {
+          context.go('/');
+          return;
+        }
       }
-    });
+    }
+
+    if (!mounted) return;
+    // Not logged in or unverified -> Navigate to Onboarding Screen
+    context.go('/onboarding');
   }
 
   @override

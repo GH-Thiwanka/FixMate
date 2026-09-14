@@ -1,3 +1,4 @@
+import 'package:fixmate/service/auth_service.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:fixmate/widget/auth_and_onboarding/googlesignup.dart';
@@ -18,6 +19,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _identifierController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  bool _isLoading = false;
+
   @override
   void dispose() {
     _identifierController.dispose();
@@ -25,9 +28,37 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      context.go('/');
+      setState(() => _isLoading = true);
+
+      final result = await AuthService.loginUser(
+        email: _identifierController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login successful! Welcome back.'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        context.go('/');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 2),
+            content: Text(result['message'] ?? 'Login failed'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -166,8 +197,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           // Login Button
                           Submilbutton(
-                            buttonText: 'Login',
-                            handleSubmit: _handleLogin,
+                            buttonText: _isLoading ? 'Logging in...' : 'Login',
+                            handleSubmit: _isLoading ? () {} : _handleLogin,
                           ),
                           const SizedBox(height: 18),
 
@@ -203,10 +234,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               print(
                                 'Selected User: ${account.displayName} (${account.email})',
                               );
+                              setState(() {
+                                _identifierController.text = account.email;
+                              });
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   content: Text(
-                                    'Welcome, ${account.displayName ?? account.email}!',
+                                    'Google account details loaded. Please complete the form.',
                                   ),
                                   backgroundColor: AppColors.primary,
                                 ),

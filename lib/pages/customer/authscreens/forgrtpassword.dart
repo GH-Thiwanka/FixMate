@@ -1,3 +1,4 @@
+import 'package:fixmate/service/auth_service.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/widget/auth_and_onboarding/submilbutton.dart';
 import 'package:flutter/material.dart';
@@ -21,27 +22,50 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  void _handleResetPassword() {
+  Future<void> _handleResetPassword() async {
     if (_formKey.currentState?.validate() ?? false) {
-      context.push('/otp-verification', extra: _emailController.text);
       setState(() => _isLoading = true);
 
-      // Simulate sending reset code
-      Future.delayed(const Duration(seconds: 2), () {
-        if (!mounted) return;
-        setState(() => _isLoading = false);
+      final result = await AuthService.sendPasswordResetEmail(
+        email: _emailController.text.trim(),
+      );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Reset code sent to ${_emailController.text}'),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (result['success'] == true) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Password Reset Link Sent'),
+            content: Text(
+              'A password reset link has been sent to ${_emailController.text.trim()}.\n\nPlease check your email inbox and follow the link to set a new password.',
             ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx); // Close dialog
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context); // Go back to login
+                  } else {
+                    context.go('/login');
+                  }
+                },
+                child: const Text('Back to Login'),
+              ),
+            ],
           ),
         );
-      });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Failed to send reset link'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -211,7 +235,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 // 3. "SEND RESET CODE" BUTTON
                 // ----------------------------------------------------
                 Submilbutton(
-                  buttonText: 'Send Reset Code',
+                  buttonText: _isLoading ? 'Sending...' : 'Send Reset Link',
                   handleSubmit: _isLoading ? null : _handleResetPassword,
                 ),
 

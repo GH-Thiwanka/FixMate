@@ -4,6 +4,7 @@ import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/widget/auth_and_onboarding/submilbutton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String emailOrPhone;
@@ -83,7 +84,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     );
   }
 
-  void _handleVerify() {
+  void _handleVerify() async {
     final otp = _controllers.map((c) => c.text).join();
     if (otp.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -99,19 +100,20 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     setState(() => _isLoading = true);
 
     // Simulate verification
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+    await Future.delayed(const Duration(seconds: 1));
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('6-Digit OTP Verified: $otp'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      // Navigate to Next Screen (e.g. Reset Password or Home)
-    });
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Verified successfully!'),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    context.go('/login');
   }
 
   @override
