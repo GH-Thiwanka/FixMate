@@ -53,8 +53,11 @@ class UserService {
         updateData['profileImageUrl'] = profileImageUrl;
       }
 
-      // 1. Update Firestore Document
-      await _firestore.collection('users').doc(uid).update(updateData);
+      // 1. Update/Merge Firestore Document
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .set(updateData, SetOptions(merge: true));
 
       // 2. Sync Display Name in Firebase Auth
       final currentUser = _auth.currentUser;
@@ -83,10 +86,10 @@ class UserService {
     required String imageUrl,
   }) async {
     try {
-      await _firestore.collection('users').doc(uid).update({
+      await _firestore.collection('users').doc(uid).set({
         'profileImageUrl': imageUrl,
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
 
       final currentUser = _auth.currentUser;
       if (currentUser != null) {

@@ -1,6 +1,9 @@
+import 'package:fixmate/data/flag_data.dart';
+import 'package:fixmate/model/flag_model.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class EditProfileSheet extends StatefulWidget {
   final String initialName;
@@ -48,14 +51,36 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
+
+  late String _selectedCountryCode;
+  late String _selectedCountryFlag;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.initialName);
-    _phoneController = TextEditingController(text: widget.initialPhone);
     _emailController = TextEditingController(text: widget.initialEmail);
+
+    // Parse and separate initial phone number into Country Code and Digits
+    String rawInitial = widget.initialPhone.trim();
+    String detectedCode = '+94';
+    String detectedFlag = '🇱🇰';
+
+    if (rawInitial.isNotEmpty) {
+      for (final flag in FlagData.flags) {
+        if (rawInitial.startsWith(flag.code)) {
+          detectedCode = flag.code;
+          detectedFlag = flag.flag;
+          rawInitial = rawInitial.substring(flag.code.length).trim();
+          break;
+        }
+      }
+    }
+
+    _selectedCountryCode = detectedCode;
+    _selectedCountryFlag = detectedFlag;
+    _phoneController = TextEditingController(text: rawInitial);
   }
 
   @override
@@ -70,9 +95,16 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => _isSaving = true);
       try {
+        // Strip any leading 0 or spaces from the local phone digits
+        String digits = _phoneController.text.trim().replaceAll(RegExp(r'[\s\-]'), '');
+        if (digits.startsWith('0')) {
+          digits = digits.substring(1);
+        }
+        final formattedPhone = '$_selectedCountryCode$digits';
+
         await widget.onSave(
           _nameController.text.trim(),
-          _phoneController.text.trim(),
+          formattedPhone,
         );
         if (mounted) {
           Navigator.pop(context);
@@ -153,7 +185,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             ),
             const SizedBox(height: 14),
 
-            // Phone Number
+            // Phone Number (Non-editable Country Code + Input)
             const Text('Phone Number', style: AppTextStyles.fieldLabel),
             const SizedBox(height: 6),
             Container(
@@ -162,23 +194,92 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.border),
               ),
-              child: TextFormField(
-                controller: _phoneController,
-                style: AppTextStyles.inputText,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.phone_outlined, color: AppColors.primary, size: 20),
-                  hintText: 'Enter phone number',
-                  hintStyle: AppTextStyles.inputHint,
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) {
-                    return 'Please enter your phone number';
-                  }
-                  return null;
-                },
+              child: Row(
+                children: [
+                  // Country Code Dropdown (Non-editable inside text field)
+                  PopupMenuButton<FlagModel>(
+                    padding: EdgeInsets.zero,
+                    color: AppColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    onSelected: (FlagModel item) {
+                      setState(() {
+                        _selectedCountryFlag = item.flag;
+                        _selectedCountryCode = item.code;
+                      });
+                    },
+                    itemBuilder: (context) => FlagData.flags.map((item) {
+                      return PopupMenuItem<FlagModel>(
+                        value: item,
+                        child: Row(
+                          children: [
+                            Text(item.flag, style: const TextStyle(fontSize: 18)),
+                            const SizedBox(width: 10),
+                            Text(
+                              '${item.name} (${item.code})',
+                              style: AppTextStyles.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_selectedCountryFlag, style: const TextStyle(fontSize: 18)),
+                          const SizedBox(width: 4),
+                          Text(_selectedCountryCode, style: AppTextStyles.fieldLabel),
+                          const SizedBox(width: 2),
+                          const Icon(
+                            Icons.arrow_drop_down,
+                            size: 18,
+                            color: AppColors.textSecondary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Divider between dropdown and input
+                  Container(
+                    width: 1.2,
+                    height: 26,
+                    color: AppColors.border,
+                  ),
+
+                  // Phone Digits Input (Digits Only)
+                  Expanded(
+                    child: TextFormField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      style: AppTextStyles.inputText,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      decoration: const InputDecoration(
+                        hintText: 'Enter phone number',
+                        hintStyle: AppTextStyles.inputHint,
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        isDense: true,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter your phone number';
+                        }
+                        final digits = value.trim().replaceAll(RegExp(r'[\s\-]'), '');
+                        if (digits.length < 7) {
+                          return 'Please enter a valid phone number';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 14),

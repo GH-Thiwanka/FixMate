@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fixmate/model/user_model.dart';
 import 'package:fixmate/service/s3_upload_service.dart';
@@ -92,8 +93,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: AppColors.primary),
-              title: const Text('Choose from Gallery', style: AppTextStyles.bodyMedium),
+              leading: const Icon(
+                Icons.photo_library_outlined,
+                color: AppColors.primary,
+              ),
+              title: const Text(
+                'Choose from Gallery',
+                style: AppTextStyles.bodyMedium,
+              ),
               onTap: () async {
                 Navigator.pop(ctx);
                 final picked = await _picker.pickImage(
@@ -107,8 +114,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
-              title: const Text('Take a Photo', style: AppTextStyles.bodyMedium),
+              leading: const Icon(
+                Icons.camera_alt_outlined,
+                color: AppColors.primary,
+              ),
+              title: const Text(
+                'Take a Photo',
+                style: AppTextStyles.bodyMedium,
+              ),
               onTap: () async {
                 Navigator.pop(ctx);
                 final picked = await _picker.pickImage(
@@ -151,7 +164,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Could not upload image to S3. Please verify AWS S3 configuration.'),
+              content: Text(
+                'Could not upload image to S3. Please verify AWS S3 configuration.',
+              ),
               backgroundColor: AppColors.error,
             ),
           );
@@ -189,22 +204,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : StreamBuilder<UserModel?>(
                 stream: UserService.streamUserProfile(currentUid),
                 builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    debugPrint(
+                      'Firestore Profile Stream Error: ${snapshot.error}',
+                    );
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting &&
+                      !snapshot.hasData) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(40.0),
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
                   final user = snapshot.data;
-                  final String displayName = user?.fullName.isNotEmpty == true
+                  final String displayName = (user?.fullName.isNotEmpty == true)
                       ? user!.fullName
-                      : (currentUser?.displayName ?? 'FixMate User');
-                  final String displayEmail = user?.email.isNotEmpty == true
+                      : ((currentUser?.displayName?.isNotEmpty == true)
+                            ? currentUser!.displayName!
+                            : 'FixMate User');
+                  final String displayEmail = (user?.email.isNotEmpty == true)
                       ? user!.email
                       : (currentUser?.email ?? '');
-                  final String displayPhone = user?.phoneNumber.isNotEmpty == true
+                  final String displayPhone =
+                      (user?.phoneNumber.isNotEmpty == true)
                       ? user!.phoneNumber
                       : 'No phone added';
-                  final String? avatarUrl = user?.profileImageUrl ?? currentUser?.photoURL;
+                  final String? avatarUrl =
+                      user?.profileImageUrl ?? currentUser?.photoURL;
                   final int completedJobs = user?.completedJobsCount ?? 0;
                   final int savedPros = user?.savedProsCount ?? 0;
 
                   return SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 10.0,
+                    ),
                     child: Column(
                       children: [
                         // ==============================================================
@@ -230,16 +272,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   // Avatar with Camera Edit Badge
                                   GestureDetector(
-                                    onTap: _isUploadingAvatar ? null : () => _handleAvatarPick(currentUid),
+                                    onTap: _isUploadingAvatar
+                                        ? null
+                                        : () => _handleAvatarPick(currentUid),
                                     child: Stack(
                                       children: [
                                         CircleAvatar(
                                           radius: 34,
-                                          backgroundColor: AppColors.primarySoft,
-                                          backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+                                          backgroundColor:
+                                              AppColors.primarySoft,
+                                          backgroundImage:
+                                              avatarUrl != null &&
+                                                  avatarUrl.isNotEmpty
                                               ? NetworkImage(avatarUrl)
                                               : null,
-                                          child: avatarUrl == null || avatarUrl.isEmpty
+                                          child:
+                                              avatarUrl == null ||
+                                                  avatarUrl.isEmpty
                                               ? const Icon(
                                                   Icons.person,
                                                   size: 36,
@@ -260,7 +309,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                   height: 20,
                                                   child: CircularProgressIndicator(
                                                     strokeWidth: 2,
-                                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                          Color
+                                                        >(Colors.white),
                                                   ),
                                                 ),
                                               ),
@@ -288,11 +340,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   const SizedBox(width: 14),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           displayName,
-                                          style: AppTextStyles.h2.copyWith(fontSize: 18),
+                                          style: AppTextStyles.h2.copyWith(
+                                            fontSize: 18,
+                                          ),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
@@ -315,19 +370,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       EditProfileSheet.show(
                                         context,
                                         name: displayName,
-                                        phone: displayPhone == 'No phone added' ? '' : displayPhone,
+                                        phone: displayPhone == 'No phone added'
+                                            ? ''
+                                            : displayPhone,
                                         email: displayEmail,
                                         onSave: (newName, newPhone) async {
-                                          final messenger = ScaffoldMessenger.of(context);
-                                          final result = await UserService.updateUserProfile(
-                                            uid: currentUid,
-                                            fullName: newName,
-                                            phoneNumber: newPhone,
-                                          );
+                                          final messenger =
+                                              ScaffoldMessenger.of(context);
+                                          final result =
+                                              await UserService.updateUserProfile(
+                                                uid: currentUid,
+                                                fullName: newName,
+                                                phoneNumber: newPhone,
+                                              );
                                           messenger.showSnackBar(
                                             SnackBar(
-                                              content: Text(result['message'] ?? 'Profile updated'),
-                                              backgroundColor: result['success'] == true
+                                              content: Text(
+                                                result['message'] ??
+                                                    'Profile updated',
+                                              ),
+                                              backgroundColor:
+                                                  result['success'] == true
                                                   ? AppColors.success
                                                   : AppColors.error,
                                             ),
@@ -340,7 +403,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         horizontal: 12,
                                         vertical: 6,
                                       ),
-                                      side: const BorderSide(color: AppColors.primary),
+                                      side: const BorderSide(
+                                        color: AppColors.primary,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
                                       ),
