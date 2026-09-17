@@ -24,7 +24,7 @@ import 'package:fixmate/pages/workerchat.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter router = GoRouter(
-  initialLocation: '/messages',
+  initialLocation: '/splash',
   routes: [
     //onboarding and splash screens
     GoRoute(path: '/splash', builder: (context, state) => const Splash()),

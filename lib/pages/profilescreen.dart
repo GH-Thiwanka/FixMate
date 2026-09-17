@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:fixmate/widget/bottumnavbar.dart';
+import 'package:fixmate/widget/profile/change_password_sheet.dart';
 import 'package:fixmate/widget/profile/edit.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -47,12 +49,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // context.go('/login');
+              onPressed: () async {
+                Navigator.pop(context); // Close dialog
+                await FirebaseAuth.instance.signOut(); // Sign out of Firebase
+                if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Logged out successfully.')),
                 );
+                if (!mounted) return;
+                context.go('/selection'); // Navigate to Selection/Login
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFEF4444),
@@ -260,6 +265,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 14),
 
               _buildMenuCard([
+                _buildMenuItem(
+                  icon: Icons.lock_reset_rounded,
+                  iconColor: AppColors.primary,
+                  title: 'Change Password',
+                  subtitle: 'Update your account security password',
+                  onTap: () => ChangePasswordSheet.show(context),
+                ),
                 _buildMenuItem(
                   icon: Icons.notifications_none_rounded,
                   iconColor: const Color(0xFFF59E0B),

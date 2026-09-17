@@ -62,9 +62,8 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
     setState(() => _isLoading = true);
 
     try {
-      // 2. Initialize with BOTH clientId and serverClientId
+      // 2. Initialize with serverClientId only (Android reads clientId automatically)
       await GoogleSignIn.instance.initialize(
-        clientId: kAndroidClientId,
         serverClientId: kWebServerClientId,
       );
 

@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:1092420138522:android:80c207265a7f4e4082c3a3",
         "android_client_info": {
-          "package_name": "com.example.fixmate"
+          "package_name": "com.application.fixmate"
         }
       },
       "oauth_client": [
@@ -18,6 +18,43 @@
           "client_type": 1,
           "android_info": {
             "package_name": "com.application.fixmate",
+            "certificate_hash": "e2f7de3cbee83ed02ef1af82a7428c0d0fb4c654"
+          }
+        },
+        {
+          "client_id": "1092420138522-av8gl6bvfot0emaenocjnulmhbsvojcd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAygdPSoFITxEV-oXzsQtSAe5VgJOhHEW0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1092420138522-av8gl6bvfot0emaenocjnulmhbsvojcd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1092420138522:android:e0ea9fbd663c519182c3a3",
+        "android_client_info": {
+          "package_name": "com.example.fixmate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1092420138522-486lilnrvo6juqh306a29q7ht13ick0k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fixmate",
             "certificate_hash": "e2f7de3cbee83ed02ef1af82a7428c0d0fb4c654"
           }
         },

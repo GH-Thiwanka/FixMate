@@ -1,5 +1,6 @@
 import 'package:fixmate/data/flag_data.dart';
 import 'package:fixmate/model/flag_model.dart';
+import 'package:fixmate/service/auth_service.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:fixmate/widget/auth_and_onboarding/googlesignup.dart';
@@ -24,6 +25,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _agreeToTerms = true;
+  bool _isLoading = false;
 
   // Selected Country Code & Flag initialized from FlagData
   late String _selectedCountryCode;
@@ -61,24 +63,70 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  void _handleSignUp() {
+  Future<void> _handleSignUp() async {
     if (!_agreeToTerms) {
-      context.go('/');
-
-      return;
-    }
-
-    if (_formKey.currentState?.validate() ?? false) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Creating account for ${_fullNameController.text}...'),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+          content: const Text(
+            'Please accept the Terms of Service to continue.',
           ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
         ),
       );
+      return;
+    }
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() => _isLoading = true);
+      // Normalize Phone Number (Sri Lanka format)
+      String rawPhone = _phoneController.text.trim().replaceAll(
+        RegExp(r'[\s\-]'),
+        '',
+      );
+      if (rawPhone.startsWith('0')) {
+        rawPhone = rawPhone.substring(1);
+      }
+      final formattedPhone = '$_selectedCountryCode$rawPhone';
+      final result = await AuthService.registerCustomer(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        fullName: _fullNameController.text.trim(),
+        phoneNumber: formattedPhone,
+      );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (result['success'] == true) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Verify Your Email'),
+            content: Text(
+              'A verification link has been sent to ${_emailController.text.trim()}.\nPlease check your inbox (and spam folder) and click the link to verify your account before logging in.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  context.go('/login');
+                },
+                child: const Text('Go to Login'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 2),
+            content: Text(result['message'] ?? 'Registration failed'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -417,10 +465,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     print(
                       'Selected User: ${account.displayName} (${account.email})',
                     );
+                    setState(() {
+                      if (account.displayName != null) {
+                        _fullNameController.text = account.displayName!;
+                      }
+                      _emailController.text = account.email;
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
-                          'Welcome, ${account.displayName ?? account.email}!',
+                          'Google account details loaded. Please complete the form.',
                         ),
                         backgroundColor: AppColors.primary,
                       ),
@@ -449,9 +503,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          if (Navigator.canPop(context)) {
-                            Navigator.pop(context);
-                          }
+                          context.go('/login');
                         },
                         child: const Text('Login', style: AppTextStyles.link),
                       ),
