@@ -8,6 +8,7 @@ import 'package:fixmate/widget/homepage/filterbottomsheet.dart';
 import 'package:fixmate/widget/homepage/notificationwidget.dart';
 import 'package:fixmate/widget/homepage/postjobcontainer.dart';
 import 'package:fixmate/widget/homepage/workercard.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -122,10 +123,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Notificationwidget(),
                       const SizedBox(width: 6),
 
-                      // User Avatar Placeholder (Screen #33 Profile)
+                      // User Avatar (Screen #33 Profile)
                       InkWell(
                         onTap: () {
-                          // TODO: context.push('/profile');
+                          context.go('/profile');
                         },
                         borderRadius: BorderRadius.circular(20),
                         child: Container(
@@ -136,13 +137,26 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: BoxShape.circle,
                             border: Border.all(color: AppColors.border),
                           ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.person_rounded,
-                              color: AppColors.primary,
-                              size: 22,
-                            ),
-                            // TODO: Replace with Image.asset('assets/images/user_avatar.png')
+                          child: ClipOval(
+                            child: FirebaseAuth.instance.currentUser?.photoURL != null
+                                ? Image.network(
+                                    FirebaseAuth.instance.currentUser!.photoURL!,
+                                    width: 38,
+                                    height: 38,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.person_rounded,
+                                      color: AppColors.primary,
+                                      size: 22,
+                                    ),
+                                  )
+                                : const Center(
+                                    child: Icon(
+                                      Icons.person_rounded,
+                                      color: AppColors.primary,
+                                      size: 22,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),

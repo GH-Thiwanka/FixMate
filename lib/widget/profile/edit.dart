@@ -6,7 +6,7 @@ class EditProfileSheet extends StatefulWidget {
   final String initialName;
   final String initialPhone;
   final String initialEmail;
-  final Function(String name, String phone, String email) onSave;
+  final Future<void> Function(String name, String phone) onSave;
 
   const EditProfileSheet({
     super.key,
@@ -21,7 +21,7 @@ class EditProfileSheet extends StatefulWidget {
     required String name,
     required String phone,
     required String email,
-    required Function(String name, String phone, String email) onSave,
+    required Future<void> Function(String name, String phone) onSave,
   }) {
     showModalBottomSheet(
       context: context,
@@ -44,9 +44,11 @@ class EditProfileSheet extends StatefulWidget {
 }
 
 class _EditProfileSheetState extends State<EditProfileSheet> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -64,6 +66,25 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     super.dispose();
   }
 
+  Future<void> _handleSave() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() => _isSaving = true);
+      try {
+        await widget.onSave(
+          _nameController.text.trim(),
+          _phoneController.text.trim(),
+        );
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isSaving = false);
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -73,120 +94,158 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
         top: 16,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Edit Profile', style: AppTextStyles.h2),
-              IconButton(
-                icon: const Icon(Icons.close, color: AppColors.textSecondary),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Full Name
-          const Text('Full Name', style: AppTextStyles.fieldLabel),
-          const SizedBox(height: 6),
-          _buildTextField(
-            _nameController,
-            'Enter full name',
-            Icons.person_outline_rounded,
-          ),
-          const SizedBox(height: 14),
-
-          // Phone Number
-          const Text('Phone Number', style: AppTextStyles.fieldLabel),
-          const SizedBox(height: 6),
-          _buildTextField(
-            _phoneController,
-            'Enter phone number',
-            Icons.phone_outlined,
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: 14),
-
-          // Email
-          const Text('Email Address', style: AppTextStyles.fieldLabel),
-          const SizedBox(height: 6),
-          _buildTextField(
-            _emailController,
-            'Enter email address',
-            Icons.mail_outline_rounded,
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 24),
-
-          // Save Button
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: () {
-                widget.onSave(
-                  _nameController.text.trim(),
-                  _phoneController.text.trim(),
-                  _emailController.text.trim(),
-                );
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              child: const Text(
-                'Save Changes',
-                style: AppTextStyles.buttonPrimary,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Edit Profile', style: AppTextStyles.h2),
+                IconButton(
+                  icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Full Name
+            const Text('Full Name', style: AppTextStyles.fieldLabel),
+            const SizedBox(height: 6),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: TextFormField(
+                controller: _nameController,
+                style: AppTextStyles.inputText,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 20),
+                  hintText: 'Enter full name',
+                  hintStyle: AppTextStyles.inputHint,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Please enter your full name';
+                  }
+                  return null;
+                },
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 14),
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String hint,
-    IconData icon, {
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        style: AppTextStyles.inputText,
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
-          hintText: hint,
-          hintStyle: AppTextStyles.inputHint,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
+            // Phone Number
+            const Text('Phone Number', style: AppTextStyles.fieldLabel),
+            const SizedBox(height: 6),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: TextFormField(
+                controller: _phoneController,
+                style: AppTextStyles.inputText,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.phone_outlined, color: AppColors.primary, size: 20),
+                  hintText: 'Enter phone number',
+                  hintStyle: AppTextStyles.inputHint,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Please enter your phone number';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Email (Read-only / Managed by Firebase Auth)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Email Address', style: AppTextStyles.fieldLabel),
+                Text(
+                  'Verified',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.success,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.background.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: TextField(
+                controller: _emailController,
+                enabled: false,
+                style: AppTextStyles.inputText.copyWith(color: AppColors.textSecondary),
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.mail_outline_rounded, color: AppColors.textSecondary, size: 20),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Save Button
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: _isSaving ? null : _handleSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Save Changes',
+                        style: AppTextStyles.buttonPrimary,
+                      ),
+              ),
+            ),
+          ],
         ),
       ),
     );
