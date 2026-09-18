@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:fixmate/service/api_client.dart';
@@ -8,7 +9,7 @@ class S3UploadService {
   /// Uploads a profile image to Amazon S3 via AWS Pre-signed URL
   ///
   /// Flow:
-  /// 1. Request S3 Pre-signed PUT URL from AWS API Gateway (`/media/presigned-url` or `/users/avatar-upload-url`)
+  /// 1. Request S3 Pre-signed PUT URL from AWS API Gateway (`/media/presigned-url`)
   /// 2. Upload the raw image bytes directly to the S3 bucket using HTTP PUT
   /// 3. Returns the clean public S3 image URL for saving in the user profile
   static Future<String?> uploadProfileImage({
@@ -30,9 +31,17 @@ class S3UploadService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data;
-        final String uploadUrl = data['uploadUrl'];
-        final String publicUrl = data['publicUrl'] ?? uploadUrl.split('?').first;
+        final dynamic rawData = response.data;
+        final Map<String, dynamic> data = rawData is String
+            ? jsonDecode(rawData)
+            : Map<String, dynamic>.from(rawData as Map);
+
+        final String? uploadUrl = data['uploadUrl'];
+        final String publicUrl = data['publicUrl'] ?? uploadUrl?.split('?').first ?? '';
+
+        if (uploadUrl == null || uploadUrl.isEmpty) {
+          return null;
+        }
 
         // 2. Direct PUT upload to S3
         final uploadResponse = await _rawDio.put(
@@ -52,7 +61,6 @@ class S3UploadService {
       }
       return null;
     } catch (e) {
-      // If AWS endpoint is not yet active, log and propagate error
       // ignore: avoid_print
       print('S3 Upload Error: $e');
       return null;

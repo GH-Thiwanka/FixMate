@@ -8,7 +8,7 @@ class ApiClient {
   late final Dio dio;
 
   // Base URL for AWS API Gateway / Backend Services
-  static const String baseUrl = 'https://4dh3ifwsf7.execute-api.us-east-1.amazonaws.com';
+  static const String baseUrl = 'https://mvdlldudvf.execute-api.us-east-1.amazonaws.com/prod';
 
   ApiClient._internal() {
     dio = Dio(
