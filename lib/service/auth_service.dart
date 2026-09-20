@@ -25,7 +25,10 @@ class AuthService {
         return {'success': false, 'message': 'Failed to create user.'};
       }
 
-      // 2. Send Firebase Email Verification Link
+      // 2. Set Display Name in Firebase Auth
+      await user.updateDisplayName(fullName.trim());
+
+      // 3. Send Firebase Email Verification Link
       await user.sendEmailVerification();
 
       // 3. Save User Profile in Firebase Firestore

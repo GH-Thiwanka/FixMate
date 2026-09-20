@@ -7,6 +7,7 @@ import 'package:fixmate/widget/auth_and_onboarding/googlesignup.dart';
 import 'package:fixmate/widget/auth_and_onboarding/submilbutton.dart';
 import 'package:fixmate/widget/auth_and_onboarding/textfieldwidget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -321,6 +322,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           controller: _phoneController,
                           keyboardType: TextInputType.phone,
                           style: AppTextStyles.inputText,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(10),
+                          ],
                           decoration: const InputDecoration(
                             hintText: 'Enter your phone number',
                             hintStyle: AppTextStyles.inputHint,
@@ -334,6 +339,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Please enter your phone number';
+                            }
+                            final digits = value.trim().replaceAll(RegExp(r'[\s\-]'), '');
+                            if (digits.length < 7) {
+                              return 'Please enter a valid phone number';
                             }
                             return null;
                           },
