@@ -1,4 +1,6 @@
-import 'package:fixmate/data/populerservicedata.dart';
+import 'package:fixmate/model/category_model.dart';
+import 'package:fixmate/service/category_service.dart';
+import 'package:fixmate/widget/category_icon.dart';
 import 'package:fixmate/data/worker_data.dart';
 import 'package:fixmate/service/location.dart';
 import 'package:fixmate/theme/colors.dart';
@@ -26,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _currentAddress = 'Detecting location...';
   bool _isLoadingLocation = true;
-  final populerservicedata = Populerservicedata();
+  final CategoryService _categoryService = CategoryService();
   final workerdata = WorkerData();
 
   @override
@@ -184,63 +186,100 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
 
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 0.9,
-                ),
-                itemCount: populerservicedata.populerservice.length,
-                itemBuilder: (context, index) {
-                  final service = populerservicedata.populerservice[index];
-                  return InkWell(
-                    onTap: () {
-                      context.push('/explore', extra: {'title': service.title});
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppColors.primaryLight.withOpacity(0.4),
-                          width: 1,
+              FutureBuilder<List<CategoryModel>>(
+                future: _categoryService.getCategories(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20.0),
+                        child: Text(
+                          'Error loading categories',
+                          style: AppTextStyles.subtitleSmall.copyWith(color: AppColors.error),
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 6),
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: service.color,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SvgPicture.asset(
-                                service.image,
-                                width: 24,
-                                height: 24,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            service.title,
-                            style: AppTextStyles.fieldLabel.copyWith(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                    );
+                  }
+                  final categories = snapshot.data?.where((c) => c.isPopular).toList() ?? [];
+
+                  if (categories.isEmpty) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20.0),
+                        child: Text('No categories found', style: AppTextStyles.subtitleSmall),
                       ),
+                    );
+                  }
+
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 0.9,
                     ),
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final service = categories[index];
+                      return InkWell(
+                        onTap: () {
+                          context.push('/explore', extra: {'title': service.title});
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.primaryLight.withOpacity(0.4),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 6),
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: service.color,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: CategoryIconWidget(
+                                    imageUrl: service.imageUrl,
+                                    width: 24,
+                                    height: 24,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                service.title,
+                                style: AppTextStyles.fieldLabel.copyWith(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

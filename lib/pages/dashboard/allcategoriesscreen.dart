@@ -1,11 +1,9 @@
-import 'package:fixmate/data/populerservicedata.dart';
-import 'package:fixmate/model/populerservice_mdel.dart';
-import 'package:fixmate/pages/dashboard/categoryresultsscreen.dart';
-import 'package:fixmate/pages/dashboard/explore.dart';
+import 'package:fixmate/model/category_model.dart';
+import 'package:fixmate/service/category_service.dart';
+import 'package:fixmate/widget/category_icon.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 class AllCategoriesScreen extends StatefulWidget {
@@ -17,7 +15,7 @@ class AllCategoriesScreen extends StatefulWidget {
 
 class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final _serviceData = Populerservicedata();
+  final CategoryService _categoryService = CategoryService();
   String _searchQuery = '';
 
   @override
@@ -28,16 +26,6 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter categories dynamically by search query
-    final List<PopulerserviceMdel> filteredServices = _serviceData
-        .populerservice
-        .where((service) {
-          return service.title.toLowerCase().contains(
-            _searchQuery.toLowerCase(),
-          );
-        })
-        .toList();
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.surface,
@@ -81,79 +69,107 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
               ),
             ),
 
-            // 2. Grid of Categories (Using Populerservicedata + SVGs)
+            // 2. Grid of Categories from DynamoDB via API Gateway
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
-                  childAspectRatio: 1.15,
-                ),
-                itemCount: filteredServices.length,
-                itemBuilder: (context, index) {
-                  final service = filteredServices[index];
-                  return InkWell(
-                    onTap: () {
-                      context.push('/explore', extra: {'title': service.title});
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+              child: FutureBuilder<List<CategoryModel>>(
+                future: _categoryService.getCategories(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Error loading categories',
+                        style: AppTextStyles.subtitleSmall.copyWith(color: AppColors.error),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Soft Pastel SVG Icon Container
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: service.color, // Soft pastel background
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: SvgPicture.asset(
-                                service.image,
-                                width: 24,
-                                height: 24,
-                              ),
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                service.title,
-                                style: AppTextStyles.fieldLabel.copyWith(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                'View Workers',
-                                style: AppTextStyles.subtitleSmall,
+                    );
+                  }
+
+                  final allCategories = snapshot.data ?? [];
+                  final filteredServices = allCategories.where((service) {
+                    return service.title.toLowerCase().contains(
+                      _searchQuery.toLowerCase(),
+                    );
+                  }).toList();
+
+                  if (filteredServices.isEmpty) {
+                    return const Center(
+                      child: Text('No categories match your search', style: AppTextStyles.subtitleSmall),
+                    );
+                  }
+
+                  return GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 14,
+                      crossAxisSpacing: 14,
+                      childAspectRatio: 1.15,
+                    ),
+                    itemCount: filteredServices.length,
+                    itemBuilder: (context, index) {
+                      final service = filteredServices[index];
+                      return InkWell(
+                        onTap: () {
+                          context.push('/explore', extra: {'title': service.title});
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.border),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: service.color,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: CategoryIconWidget(
+                                    imageUrl: service.imageUrl,
+                                    width: 24,
+                                    height: 24,
+                                  ),
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    service.title,
+                                    style: AppTextStyles.fieldLabel.copyWith(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  const Text(
+                                    'View Workers',
+                                    style: AppTextStyles.subtitleSmall,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

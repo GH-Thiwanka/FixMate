@@ -1,5 +1,5 @@
-import 'package:fixmate/data/job_data.dart';
 import 'package:fixmate/model/job_model.dart';
+import 'package:fixmate/service/job_service.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:fixmate/widget/bottumnavbar.dart';
@@ -19,11 +19,35 @@ class _MyJobsScreenState extends State<MyJobsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final int _selectedBottomNavIndex = 1;
+  final JobService _jobService = JobService();
+  List<JobModel> _allJobs = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _fetchJobs();
+  }
+
+  Future<void> _fetchJobs() async {
+    setState(() => _isLoading = true);
+    try {
+      final jobs = await _jobService.getMyJobs();
+      if (mounted) {
+        setState(() {
+          _allJobs = jobs;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load jobs: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -33,7 +57,7 @@ class _MyJobsScreenState extends State<MyJobsScreen>
   }
 
   List<JobModel> _getJobsForTab(JobTabType tab) {
-    return MyJobsData.jobs.where((job) => job.tab == tab).toList();
+    return _allJobs.where((job) => job.tab == tab).toList();
   }
 
   @override
@@ -50,7 +74,6 @@ class _MyJobsScreenState extends State<MyJobsScreen>
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/post-a-job'),
-
         backgroundColor: AppColors.surface,
         child: const Icon(Icons.add_rounded, color: AppColors.primary),
       ),
@@ -98,25 +121,31 @@ class _MyJobsScreenState extends State<MyJobsScreen>
             const SizedBox(height: 8),
 
             // ----------------------------------------------------
-            // 2. TAB VIEWS (Active, Upcoming, Completed, Cancelled)
+            // 2. TAB VIEWS
             // ----------------------------------------------------
             Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildJobList(JobTabType.active),
-                  _buildJobList(JobTabType.upcoming),
-                  _buildJobList(JobTabType.completed),
-                  _buildJobList(JobTabType.cancelled),
-                ],
-              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : RefreshIndicator(
+                      onRefresh: _fetchJobs,
+                      color: AppColors.primary,
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildJobList(JobTabType.active),
+                          _buildJobList(JobTabType.upcoming),
+                          _buildJobList(JobTabType.completed),
+                          _buildJobList(JobTabType.cancelled),
+                        ],
+                      ),
+                    ),
             ),
           ],
         ),
       ),
 
       // ----------------------------------------------------
-      // 3. PERSISTENT 5-TAB BOTTOM NAVIGATION BAR
+      // 3. PERSISTENT BOTTOM NAV
       // ----------------------------------------------------
       bottomNavigationBar: BottomNavBar(
         currentIndex: _selectedBottomNavIndex,
@@ -145,10 +174,20 @@ class _MyJobsScreenState extends State<MyJobsScreen>
     final jobList = _getJobsForTab(tab);
 
     if (jobList.isEmpty) {
-      return EmptyJobsWidget(tab: tab);
+      return ListView(
+        // Use listview to allow pull-to-refresh even when empty
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: EmptyJobsWidget(tab: tab),
+          ),
+        ],
+      );
     }
 
     return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       itemCount: jobList.length,
       itemBuilder: (context, index) {

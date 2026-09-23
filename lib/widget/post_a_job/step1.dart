@@ -1,28 +1,41 @@
-import 'package:fixmate/data/populerservicedata.dart';
+import 'package:fixmate/model/category_model.dart';
+import 'package:fixmate/widget/category_icon.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class Step1SelectServiceWidget extends StatelessWidget {
+  final List<CategoryModel> categories;
   final String selectedCategory;
   final String selectedSubService;
-  final Map<String, List<String>> subServices;
   final ValueChanged<String> onCategorySelected;
   final ValueChanged<String> onSubServiceSelected;
 
   const Step1SelectServiceWidget({
     super.key,
+    required this.categories,
     required this.selectedCategory,
     required this.selectedSubService,
-    required this.subServices,
     required this.onCategorySelected,
     required this.onSubServiceSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    final Populerservicedata categoryData = Populerservicedata();
+    final currentCategoryModel = categories.firstWhere(
+      (c) => c.title == selectedCategory,
+      orElse: () => categories.isNotEmpty
+          ? categories.first
+          : CategoryModel(
+              id: '',
+              title: '',
+              imageUrl: '',
+              color: Colors.transparent,
+            ),
+    );
+
+    final currentSubServices = currentCategoryModel.subServices;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -36,9 +49,9 @@ class Step1SelectServiceWidget extends StatelessWidget {
             mainAxisSpacing: 15,
             crossAxisSpacing: 15,
           ),
-          itemCount: categoryData.populerservice.length,
+          itemCount: categories.length,
           itemBuilder: (context, index) {
-            final cat = categoryData.populerservice[index];
+            final cat = categories[index];
             final isSelected = selectedCategory == cat.title;
             return InkWell(
               onTap: () => onCategorySelected(cat.title),
@@ -57,18 +70,23 @@ class Step1SelectServiceWidget extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SvgPicture.asset(cat.image, width: 40, height: 40),
-                    const SizedBox(height: 10),
+                    CategoryIconWidget(
+                      imageUrl: cat.imageUrl,
+                      width: 38,
+                      height: 38,
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       cat.title,
                       style: TextStyle(
                         fontSize: 11.5,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
                         color: AppColors.textPrimary,
                       ),
                       textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -77,34 +95,39 @@ class Step1SelectServiceWidget extends StatelessWidget {
           },
         ),
         const SizedBox(height: 24),
-
         const Text('Select Specific Service', style: AppTextStyles.h3),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: (subServices[selectedCategory] ?? []).map((sub) {
-            final isSelected = selectedSubService == sub;
-            return ChoiceChip(
-              label: Text(sub),
-              selected: isSelected,
-              selectedColor: AppColors.primarySoft,
-              labelStyle: TextStyle(
-                color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: BorderSide(
-                  color: isSelected ? AppColors.primary : AppColors.border,
+        if (currentSubServices.isEmpty)
+          const Text(
+            'No specific services available for this category.',
+            style: AppTextStyles.subtitleSmall,
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: currentSubServices.map((sub) {
+              final isSelected = selectedSubService == sub;
+              return ChoiceChip(
+                label: Text(sub),
+                selected: isSelected,
+                selectedColor: AppColors.primarySoft,
+                labelStyle: TextStyle(
+                  color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
-              ),
-              onSelected: (val) {
-                if (val) onSubServiceSelected(sub);
-              },
-            );
-          }).toList(),
-        ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: isSelected ? AppColors.primary : AppColors.border,
+                  ),
+                ),
+                onSelected: (val) {
+                  if (val) onSubServiceSelected(sub);
+                },
+              );
+            }).toList(),
+          ),
       ],
     );
   }

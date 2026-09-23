@@ -66,4 +66,57 @@ class S3UploadService {
       return null;
     }
   }
+
+  /// Uploads a job photo to Amazon S3
+  static Future<String?> uploadJobImage({
+    required File imageFile,
+    required String jobId,
+  }) async {
+    try {
+      final fileName = 'photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileBytes = await imageFile.readAsBytes();
+
+      // 1. Request pre-signed URL from AWS Backend
+      final response = await ApiClient().post(
+        '/media/presigned-url',
+        data: {
+          'fileName': fileName,
+          'fileType': 'image/jpeg',
+          'folder': 'jobs/$jobId/photos',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final dynamic rawData = response.data;
+        final Map<String, dynamic> data = rawData is String
+            ? jsonDecode(rawData)
+            : Map<String, dynamic>.from(rawData as Map);
+
+        final String? uploadUrl = data['uploadUrl'];
+        final String publicUrl = data['publicUrl'] ?? uploadUrl?.split('?').first ?? '';
+
+        if (uploadUrl == null || uploadUrl.isEmpty) return null;
+
+        // 2. Direct PUT upload to S3
+        final uploadResponse = await _rawDio.put(
+          uploadUrl,
+          data: fileBytes,
+          options: Options(
+            headers: {
+              'Content-Type': 'image/jpeg',
+              'Content-Length': fileBytes.length,
+            },
+          ),
+        );
+
+        if (uploadResponse.statusCode == 200) {
+          return publicUrl;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('S3 Job Image Upload Error: $e');
+      return null;
+    }
+  }
 }
