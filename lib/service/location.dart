@@ -28,7 +28,7 @@ class LocationService {
       Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
+          timeLimit: Duration(seconds: 5),
         ),
       );
 
@@ -37,6 +37,16 @@ class LocationService {
         position.longitude,
       );
     } catch (e) {
+      // Fallback to last known position on failure/timeout
+      try {
+        Position? lastPosition = await Geolocator.getLastKnownPosition();
+        if (lastPosition != null) {
+          return await getAddressFromCoordinates(
+            lastPosition.latitude,
+            lastPosition.longitude,
+          );
+        }
+      } catch (_) {}
       return 'Could not retrieve location';
     }
   }

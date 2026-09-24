@@ -1,3 +1,4 @@
+import 'package:geolocator/geolocator.dart';
 import 'package:fixmate/service/location.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
@@ -26,9 +27,58 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
     super.initState();
     if (widget.initialPosition != null) {
       _center = widget.initialPosition!;
+      _fetchAddress(_center);
+    } else {
+      _initCurrentLocation();
     }
-    _fetchAddress(_center);
   }
+
+  Future<void> _initCurrentLocation() async {
+    try {
+            bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _fetchAddress(_center);
+        return;
+      }
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _fetchAddress(_center);
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        _fetchAddress(_center);
+        return;
+      }
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 5),
+        ),
+      );
+      if (mounted) {
+        setState(() {
+          _center = LatLng(position.latitude, position.longitude);
+          _mapController.move(_center, 15.0);
+        });
+        _fetchAddress(_center);
+      }
+    } catch (e) {
+      try {
+        Position? lastPosition = await Geolocator.getLastKnownPosition();
+        if (lastPosition != null && mounted) {
+          setState(() {
+            _center = LatLng(lastPosition.latitude, lastPosition.longitude);
+            _mapController.move(_center, 15.0);
+          });
+        }
+      } catch (_) {}
+      _fetchAddress(_center);
+    }
+  }
+
 
   // Reverse geocode when dragging stops
   Future<void> _fetchAddress(LatLng pos) async {
@@ -215,3 +265,4 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
     );
   }
 }
+
