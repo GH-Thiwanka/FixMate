@@ -14,8 +14,8 @@ class ApiClient {
     dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -42,7 +42,8 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException error, handler) {
-          // Centralized error handling (e.g., 401 Unauthorized token expiry)
+          // ignore: avoid_print
+          print('ApiClient Error [${error.response?.statusCode}]: ${error.requestOptions.path} -> ${error.message}');
           if (error.response?.statusCode == 401) {
             // Can trigger sign-out or token refresh if necessary
           }

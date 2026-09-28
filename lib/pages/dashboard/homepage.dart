@@ -30,10 +30,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingLocation = true;
   final CategoryService _categoryService = CategoryService();
   final workerdata = WorkerData();
+  late Future<List<CategoryModel>> _categoriesFuture;
 
   @override
   void initState() {
     super.initState();
+    _categoriesFuture = _categoryService.getCategories();
     _fetchUserLocation();
   }
 
@@ -187,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
 
               FutureBuilder<List<CategoryModel>>(
-                future: _categoryService.getCategories(),
+                future: _categoriesFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(

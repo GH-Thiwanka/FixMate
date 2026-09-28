@@ -17,6 +17,13 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
   final TextEditingController _searchController = TextEditingController();
   final CategoryService _categoryService = CategoryService();
   String _searchQuery = '';
+  late Future<List<CategoryModel>> _categoriesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _categoriesFuture = _categoryService.getCategories();
+  }
 
   @override
   void dispose() {
@@ -72,7 +79,7 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
             // 2. Grid of Categories from DynamoDB via API Gateway
             Expanded(
               child: FutureBuilder<List<CategoryModel>>(
-                future: _categoryService.getCategories(),
+                future: _categoriesFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
