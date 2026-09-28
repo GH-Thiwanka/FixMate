@@ -1,4 +1,8 @@
-import 'package:fixmate/data/subservice_data.dart';
+import 'dart:io';
+import 'package:fixmate/model/category_model.dart';
+import 'package:fixmate/service/category_service.dart';
+import 'package:fixmate/service/job_service.dart';
+import 'package:fixmate/service/s3_upload_service.dart';
 import 'package:fixmate/service/location.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
@@ -26,11 +30,13 @@ class PostAJobScreen extends StatefulWidget {
 
 class _PostAJobScreenState extends State<PostAJobScreen> {
   int _currentStep = 0;
-  final SubserviceData _subServiceData = SubserviceData();
+  final CategoryService _categoryService = CategoryService();
+  List<CategoryModel> _categories = [];
+  bool _isCategoriesLoaded = false;
 
   // Step 1 State
-  late String _selectedCategory;
-  late String _selectedSubService;
+  String _selectedCategory = 'Painting';
+  String _selectedSubService = 'General Service';
 
   // Step 2 State (Description, Property Type & Photo List)
   final TextEditingController _descriptionController = TextEditingController();
@@ -58,12 +64,9 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.initialCategory ?? 'Painting';
-    final subList = _subServiceData.subServices[_selectedCategory] ?? [];
-    _selectedSubService = subList.isNotEmpty
-        ? subList.first
-        : 'General Service';
-
+    if (widget.initialCategory != null) {
+      _selectedCategory = widget.initialCategory!;
+    }
     _loadUserAddress();
   }
 
@@ -95,11 +98,74 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
     super.dispose();
   }
 
-  void _nextStep() {
+  bool _isSubmitting = false;
+  final JobService _jobService = JobService();
+
+  void _nextStep() async {
     if (_currentStep < 4) {
       setState(() => _currentStep++);
     } else {
-      PostJobSuccessDialog.show(context, onDone: () => context.pop());
+      await _submitJob();
+    }
+  }
+
+  Future<void> _submitJob() async {
+    if (_isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+    
+    // Convert XFiles to standard Files if needed, but the service can be adapted or we use File(xfile.path).
+    // The createJob expects a map of job data, and we can handle uploading inside JobService or here.
+    try {
+      final List<String> uploadedPhotoUrls = [];
+      // Generate a temporary job ID for S3 folder structure
+      final tempJobId = DateTime.now().millisecondsSinceEpoch.toString();
+
+      for (var xFile in _selectedImages) {
+        final publicUrl = await S3UploadService.uploadJobImage(
+          imageFile: File(xFile.path),
+          jobId: tempJobId,
+        );
+        if (publicUrl != null) uploadedPhotoUrls.add(publicUrl);
+      }
+
+      final jobData = {
+        'id': tempJobId, // Usually the backend will assign a UUID, but we can pass this or let backend override.
+        'category': _selectedCategory,
+        'subService': _selectedSubService,
+        'description': _descriptionController.text,
+        'propertyType': _propertyType,
+        'address': _address,
+        'scheduledDate': _scheduleType == 'Schedule a Visit' 
+            ? '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}'
+            : 'ASAP',
+        'scheduledTime': _scheduleType == 'Schedule a Visit'
+            ? '${_startHour}:00 - ${_endHour}:00'
+            : 'Anytime',
+        'budgetPreference': _budgetPreference,
+        'budget': _budgetPreference == 'Fixed Budget' ? double.tryParse(_budgetController.text) : null,
+        'broadcastToAll': _broadcastToAll,
+        'photoUrls': uploadedPhotoUrls,
+        'status': 'PENDING',
+      };
+
+      await _jobService.createJob(jobData);
+      
+      if (mounted) {
+        PostJobSuccessDialog.show(context, onDone: () {
+          context.go('/my-jobs');
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to post job: \$e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
@@ -123,41 +189,68 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            PostJobProgressBar(
-              currentStep: _currentStep,
-              stepTitle: _getStepTitle(),
-            ),
-            const Divider(color: AppColors.divider, height: 1),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20.0),
-                child: _buildCurrentStepWidget(),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
+        child: FutureBuilder<List<CategoryModel>>(
+          future: _categoryService.getCategories(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting && !_isCategoriesLoaded) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return const Center(child: Text('Error loading categories'));
+            }
+            if (snapshot.hasData && !_isCategoriesLoaded) {
+              _categories = snapshot.data!;
+              _isCategoriesLoaded = true;
+              
+              if (_categories.isNotEmpty) {
+                // If the initial category wasn't found, default to the first one
+                final catExists = _categories.any((c) => c.title == _selectedCategory);
+                if (!catExists) _selectedCategory = _categories.first.title;
+
+                final currentCat = _categories.firstWhere((c) => c.title == _selectedCategory, orElse: () => _categories.first);
+                if (currentCat.subServices.isNotEmpty && _selectedSubService == 'General Service') {
+                  _selectedSubService = currentCat.subServices.first;
+                }
+              }
+            }
+
+            return Column(
+              children: [
+                PostJobProgressBar(
+                  currentStep: _currentStep,
+                  stepTitle: _getStepTitle(),
                 ),
-                color: AppColors.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
+                const Divider(color: AppColors.divider, height: 1),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20.0),
+                    child: _buildCurrentStepWidget(),
                   ),
-                ],
-              ),
-              child: Submilbutton(
-                buttonText: _currentStep == 4 ? 'Post Job Request' : 'Next',
-                handleSubmit: _nextStep,
-              ),
-            ),
-          ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                    color: AppColors.surface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: Submilbutton(
+                    buttonText: _currentStep == 4 ? 'Post Job Request' : 'Next',
+                    handleSubmit: _nextStep,
+                  ),
+                ),
+              ],
+            );
+          }
         ),
       ),
     );
@@ -184,12 +277,12 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
     switch (_currentStep) {
       case 0:
         return Step1SelectServiceWidget(
+          categories: _categories,
           selectedCategory: _selectedCategory,
           selectedSubService: _selectedSubService,
-          subServices: _subServiceData.subServices,
           onCategorySelected: (cat) => setState(() {
             _selectedCategory = cat;
-            final subList = _subServiceData.subServices[cat] ?? [];
+            final subList = _categories.firstWhere((c) => c.title == cat, orElse: () => _categories.first).subServices;
             _selectedSubService = subList.isNotEmpty
                 ? subList.first
                 : 'General Service';
@@ -222,7 +315,6 @@ class _PostAJobScreenState extends State<PostAJobScreen> {
           onStartHourChanged: (hour) {
             setState(() {
               _startHour = hour;
-              // If endHour is now equal to or before startHour, auto-advance it
               if (_endHour <= _startHour) {
                 _endHour = (_startHour + 1).clamp(9, 18);
               }
