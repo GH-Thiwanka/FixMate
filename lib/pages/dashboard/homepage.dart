@@ -1,7 +1,8 @@
+import 'package:fixmate/model/worker_model.dart';
+import 'package:fixmate/service/worker_service.dart';
 import 'package:fixmate/model/category_model.dart';
 import 'package:fixmate/service/category_service.dart';
 import 'package:fixmate/widget/category_icon.dart';
-import 'package:fixmate/data/worker_data.dart';
 import 'package:fixmate/service/location.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
@@ -29,13 +30,15 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currentAddress = 'Detecting location...';
   bool _isLoadingLocation = true;
   final CategoryService _categoryService = CategoryService();
-  final workerdata = WorkerData();
+  final WorkerService _workerService = WorkerService();
   late Future<List<CategoryModel>> _categoriesFuture;
+  late Future<List<WorkerModel>> _workersFuture;
 
   @override
   void initState() {
     super.initState();
     _categoriesFuture = _categoryService.getCategories();
+    _workersFuture = _workerService.getWorkers();
     _fetchUserLocation();
   }
 
@@ -300,29 +303,47 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-
               // Horizontal Scrolling Worker Cards
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-
-                clipBehavior: Clip.none,
-                child: Row(
-                  children: [
-                    for (var worker in workerdata.workers.take(4))
-                      SizedBox(
-                        width: 350,
-                        child: Workercard(
-                          name: worker.name,
-                          service: worker.service,
-                          imageUrl: worker.imageUrl,
-                          rating: worker.rating,
-                          reviewCount: worker.reviewCount,
-                          price: worker.price,
-                          distance: worker.distance,
-                        ),
-                      ),
-                  ],
-                ),
+              FutureBuilder<List<WorkerModel>>(
+                future: _workersFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Failed to load workers'));
+                  }
+                  
+                  final workers = snapshot.data ?? [];
+                  
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    clipBehavior: Clip.none,
+                    child: Row(
+                      children: [
+                        for (var worker in workers.take(4))
+                          Padding(
+                            padding: const EdgeInsets.only(right: 12.0),
+                            child: SizedBox(
+                              width: 350,
+                              child: Workercard(
+                                id: worker.id,
+                                name: worker.name,
+                                category: worker.category,
+                                rating: worker.rating,
+                                imageUrl: worker.imageUrl,
+                                reviewCount: worker.reviewCount,
+                                priceRate: worker.priceRate,
+                                priceUnit: worker.priceUnit,
+                                location: worker.location,
+                                isVerified: worker.isVerified,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 20),
             ],
@@ -358,3 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+
+
+

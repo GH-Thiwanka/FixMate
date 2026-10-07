@@ -4,22 +4,29 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class Workercard extends StatelessWidget {
+  final String id;
   final String name;
-  final String service;
-  final String rating;
+  final String category;
+  final double rating;
   final String? imageUrl;
-  final String reviewCount;
-  final String price;
-  final String distance;
+  final int reviewCount;
+  final double priceRate;
+  final String priceUnit;
+  final String location;
+  final bool isVerified;
+
   const Workercard({
     super.key,
+    required this.id,
     required this.name,
-    required this.service,
+    required this.category,
     required this.rating,
     this.imageUrl,
     required this.reviewCount,
-    required this.price,
-    required this.distance,
+    required this.priceRate,
+    required this.priceUnit,
+    required this.location,
+    required this.isVerified,
   });
 
   @override
@@ -83,34 +90,36 @@ class Workercard extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                SizedBox(width: 4),
-                                Icon(
-                                  Icons.verified_rounded,
-                                  color: Color(0xFF0756A6),
-                                  size: 17,
-                                ),
+                                if (isVerified) ...[
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.verified_rounded,
+                                    color: Color(0xFF0756A6),
+                                    size: 17,
+                                  ),
+                                ]
                               ],
                             ),
                             const SizedBox(height: 3),
-                            Text(service, style: AppTextStyles.subtitleSmall),
+                            Text(category, style: AppTextStyles.subtitleSmall),
                             const SizedBox(height: 6),
                             Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.star_rounded,
                                   color: AppColors.star,
                                   size: 18,
                                 ),
-                                SizedBox(width: 4),
+                                const SizedBox(width: 4),
                                 Text(
-                                  rating,
-                                  style: TextStyle(
+                                  rating.toStringAsFixed(1),
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 13,
                                     color: AppColors.textPrimary,
                                   ),
                                 ),
-                                SizedBox(width: 4),
+                                const SizedBox(width: 4),
                                 Text(
                                   '($reviewCount reviews)',
                                   style: AppTextStyles.subtitleSmall,
@@ -136,13 +145,13 @@ class Workercard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'Starting Rate',
                           style: AppTextStyles.subtitleSmall,
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
-                          'Rs. $price/hr',
+                          'Rs. $priceRate/$priceUnit',
                           style: AppTextStyles.h2.copyWith(color: Colors.green),
                         ),
                       ],
@@ -178,8 +187,8 @@ class Workercard extends StatelessWidget {
                   ),
                   SizedBox(width: 3),
                   Text(
-                    distance,
-                    style: TextStyle(
+                    location,
+                    style: const TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
                       color: AppColors.darkCard,

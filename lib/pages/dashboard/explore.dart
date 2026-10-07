@@ -1,4 +1,4 @@
-import 'package:fixmate/data/worker_data.dart';
+import 'package:fixmate/service/worker_service.dart';
 import 'package:fixmate/model/worker_model.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
@@ -19,7 +19,8 @@ class ExploreScreen extends StatefulWidget {
 class _ExploreScreenState extends State<ExploreScreen> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedFilterChipIndex = 0;
-  final WorkerData workerData = WorkerData();
+  final WorkerService _workerService = WorkerService();
+  late Future<List<WorkerModel>> _workersFuture;
   String _searchQuery = '';
 
   late String _appbarTitle;
@@ -38,31 +39,26 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _appbarTitle = widget.title.isNotEmpty
         ? widget.title
         : 'Top Rated Near You';
+    
+    String? categoryQuery;
     if (widget.title.isNotEmpty && widget.title != 'Top Rated Near You') {
       _searchQuery = widget.title;
       _searchController.text = widget.title;
+      categoryQuery = widget.title;
     }
+    
+    // Pass category query if coming from a category icon
+    _workersFuture = _workerService.getWorkers(category: categoryQuery);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // 1. Filter workers dynamically by search query
-    final List<WorkerModel> filteredWorkers = workerData.workers.where((
-      worker,
-    ) {
-      final query = _searchQuery.toLowerCase();
-      final nameMatches = worker.name.toLowerCase().contains(query);
-      final serviceMatches = worker.service.toLowerCase().contains(query);
-      return nameMatches || serviceMatches;
-    }).toList();
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.surface,
@@ -75,8 +71,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(_appbarTitle, style: AppTextStyles.h2.copyWith(fontSize: 18)),
-            Text(
-              '${filteredWorkers.length} verified professionals nearby',
+            const Text(
+              'verified professionals nearby',
               style: AppTextStyles.subtitleSmall,
             ),
           ],
@@ -121,6 +117,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                     setState(() {
                                       _searchQuery = '';
                                       _appbarTitle = 'Top Rated Near You';
+                                      _workersFuture = _workerService.getWorkers();
                                     });
                                   },
                                 )
@@ -208,8 +205,28 @@ class _ExploreScreenState extends State<ExploreScreen> {
             // 3. VERTICAL LIST OF FILTERED WORKER CARDS
             // ----------------------------------------------------
             Expanded(
-              child: filteredWorkers.isEmpty
-                  ? Center(
+              child: FutureBuilder<List<WorkerModel>>(
+                future: _workersFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Failed to load workers'));
+                  }
+
+                  final workers = snapshot.data ?? [];
+                  
+                  // Local client-side search filtering
+                  final filteredWorkers = workers.where((worker) {
+                    final query = _searchQuery.toLowerCase();
+                    final nameMatches = worker.name.toLowerCase().contains(query);
+                    final serviceMatches = worker.category.toLowerCase().contains(query);
+                    return nameMatches || serviceMatches;
+                  }).toList();
+
+                  if (filteredWorkers.isEmpty) {
+                    return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
@@ -225,25 +242,32 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           ),
                         ],
                       ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(10),
-                      itemCount: filteredWorkers.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final worker = filteredWorkers[index];
-                        return Workercard(
-                          name: worker.name,
-                          service: worker.service,
-                          rating: worker.rating,
-                          imageUrl: worker.imageUrl,
-                          reviewCount: worker.reviewCount,
-                          price: worker.price,
-                          distance: worker.distance,
-                        );
-                      },
-                    ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(10),
+                    itemCount: filteredWorkers.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final worker = filteredWorkers[index];
+                      return Workercard(
+                        id: worker.id,
+                        name: worker.name,
+                        category: worker.category,
+                        rating: worker.rating,
+                        imageUrl: worker.imageUrl,
+                        reviewCount: worker.reviewCount,
+                        priceRate: worker.priceRate,
+                        priceUnit: worker.priceUnit,
+                        location: worker.location,
+                        isVerified: worker.isVerified,
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -251,3 +275,4 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 }
+

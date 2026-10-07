@@ -1,4 +1,5 @@
-import 'package:fixmate/data/worker_data.dart';
+import 'package:fixmate/model/worker_model.dart';
+import 'package:fixmate/service/worker_service.dart';
 import 'package:fixmate/theme/colors.dart';
 import 'package:fixmate/theme/textstyle.dart';
 import 'package:fixmate/widget/homepage/filterbottomsheet.dart';
@@ -17,8 +18,9 @@ class CategoryResultsScreen extends StatefulWidget {
 class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedFilterChipIndex = 0;
-
-  final WorkerData _workerData = WorkerData();
+  final WorkerService _workerService = WorkerService();
+  late Future<List<WorkerModel>> _workersFuture;
+  String _searchQuery = '';
 
   final List<String> _filterChips = [
     'All',
@@ -27,6 +29,12 @@ class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
     'Available Today',
     'Verified Only',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _workersFuture = _workerService.getWorkers(category: widget.categoryTitle);
+  }
 
   @override
   void dispose() {
@@ -78,6 +86,7 @@ class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
                       ),
                       child: TextField(
                         controller: _searchController,
+                        onChanged: (val) => setState(() => _searchQuery = val),
                         style: AppTextStyles.inputText,
                         decoration: InputDecoration(
                           hintText: 'Search in ${widget.categoryTitle}...',
@@ -164,24 +173,67 @@ class _CategoryResultsScreenState extends State<CategoryResultsScreen> {
             ),
             const SizedBox(height: 8),
 
-            // 3. Worker Results Feed (Using your Workercard)
-            const SizedBox(height: 16),
-            // Add your worker results feed here
+            // 3. Worker Results Feed (Using FutureBuilder & Workercard)
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _workerData.workers.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Workercard(
-                      name: _workerData.workers[index].name,
-                      service: _workerData.workers[index].service,
-                      rating: _workerData.workers[index].rating,
-                      price: _workerData.workers[index].price,
-                      distance: _workerData.workers[index].distance,
-                      reviewCount: _workerData.workers[index].reviewCount,
-                    ),
+              child: FutureBuilder<List<WorkerModel>>(
+                future: _workersFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Failed to load workers'));
+                  }
+
+                  final workers = snapshot.data ?? [];
+                  final filteredWorkers = workers.where((worker) {
+                    final query = _searchQuery.toLowerCase();
+                    final nameMatches = worker.name.toLowerCase().contains(query);
+                    final aboutMatches = worker.about.toLowerCase().contains(query);
+                    return nameMatches || aboutMatches;
+                  }).toList();
+
+                  if (filteredWorkers.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 48,
+                            color: AppColors.textLight,
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            'No workers found in this category',
+                            style: AppTextStyles.subtitle,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: filteredWorkers.length,
+                    itemBuilder: (context, index) {
+                      final worker = filteredWorkers[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Workercard(
+                          id: worker.id,
+                          name: worker.name,
+                          category: worker.category,
+                          rating: worker.rating,
+                          imageUrl: worker.imageUrl,
+                          reviewCount: worker.reviewCount,
+                          priceRate: worker.priceRate,
+                          priceUnit: worker.priceUnit,
+                          location: worker.location,
+                          isVerified: worker.isVerified,
+                        ),
+                      );
+                    },
                   );
                 },
               ),
